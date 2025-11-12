@@ -101,9 +101,14 @@ class InvoiceController extends GetxController {
   }
 
   void _addItem(ItemModel item) {
-    final priceListDetails = _storage.getPriceListDetails(customer.priceList.id);
-    final priceDetail = priceListDetails.firstWhereOrNull((p) => p.item.id == item.id);
-    final defaultPrice = priceDetail?.price ?? 0.0;
+    double defaultPrice = 0.0;
+    
+    // Only get price list details if customer has a price list
+    if (customer.priceList != null) {
+      final priceListDetails = _storage.getPriceListDetails(customer.priceList!.id);
+      final priceDetail = priceListDetails.firstWhereOrNull((p) => p.item.id == item.id);
+      defaultPrice = priceDetail?.price ?? 0.0;
+    }
 
     selectedItems.add(InvoiceItemRow(
       item: item,

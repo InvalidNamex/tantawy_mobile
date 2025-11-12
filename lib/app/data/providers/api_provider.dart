@@ -14,22 +14,33 @@ class ApiProvider {
       baseUrl: AppConstants.baseURL,
       connectTimeout: Duration(seconds: 30),
       receiveTimeout: Duration(seconds: 30),
+      headers: {
+        'ngrok-skip-browser-warning': 'true', // Skip ngrok browser warning
+      },
     ));
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        final agent = _storage.getAgent();
-        if (agent != null) {
-          final tokenPreview = agent.token.length > 10 
-              ? '${agent.token.substring(0, 10)}...' 
-              : '${agent.token}...';
-          logger.d('🔑 Agent Details: ID=${agent.id}, Name=${agent.name}, Token=$tokenPreview, StoreID=${agent.storeID}');
-          final credentials = base64Encode(utf8.encode('${agent.name}:${agent.token}'));
-          options.headers['Authorization'] = 'Basic $credentials';
-          logger.d('✅ Auth header added: Basic $credentials');
-          logger.d('📤 Decoded: ${agent.name}:$tokenPreview');
+        // Only add auth for endpoints that require it
+        final requiresAuth = _requiresAuthentication(options.path);
+        
+        if (requiresAuth) {
+          final agent = _storage.getAgent();
+          if (agent != null) {
+            logger.d('🔑 Auth required for ${options.path}');
+            logger.d('🔑 Agent: ID=${agent.id}, Name=${agent.name}, Username=${agent.username}');
+            
+            // Create Basic Auth with username:password format (as per API docs)
+            final credentials = base64Encode(utf8.encode('${agent.username}:${agent.password}'));
+            options.headers['Authorization'] = 'Basic $credentials';
+            
+            logger.d('✅ Auth header added: Basic $credentials');
+            logger.d('📤 Credentials: ${agent.username}:${agent.password}');
+          } else {
+            logger.w('❌ WARNING: Auth required but no agent found in storage!');
+          }
         } else {
-          logger.w('❌ WARNING: No agent found in storage! Request will be unauthorized');
+          logger.d('ℹ️ No auth required for ${options.path}');
         }
         return handler.next(options);
       },
@@ -39,6 +50,19 @@ class ApiProvider {
         return handler.next(error);
       },
     ));
+  }
+
+  // Determine if endpoint requires authentication based on API docs
+  bool _requiresAuthentication(String path) {
+    // Endpoints that REQUIRE Basic Auth
+    final authRequiredPaths = [
+      '/api/agents/visit-plans/active-with-customers/',
+      '/api/invoices/batch-create/',
+      '/api/vouchers/batch-create/',
+      '/api/visits/batch-create/',
+    ];
+    
+    return authRequiredPaths.any((authPath) => path.contains(authPath));
   }
 
   Future<Response> login(String username, String password) async {

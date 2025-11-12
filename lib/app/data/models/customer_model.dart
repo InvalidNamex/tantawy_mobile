@@ -14,27 +14,29 @@ class CustomerModel {
   final String phoneOne;
   
   @HiveField(3)
-  final PriceListInfo priceList;
+  final PriceListInfo? priceList;
 
   CustomerModel({
     required this.id,
     required this.customerName,
     required this.phoneOne,
-    required this.priceList,
+    this.priceList,
   });
 
   factory CustomerModel.fromJson(Map<String, dynamic> json) => CustomerModel(
     id: json['id'],
     customerName: json['customer_name'],
     phoneOne: json['phone_one'] ?? '',
-    priceList: PriceListInfo.fromJson(json['price_list']),
+    priceList: json['price_list'] != null 
+        ? PriceListInfo.fromJson(json['price_list']) 
+        : null,
   );
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'customer_name': customerName,
     'phone_one': phoneOne,
-    'price_list': priceList.toJson(),
+    'price_list': priceList?.toJson(),
   };
 }
 

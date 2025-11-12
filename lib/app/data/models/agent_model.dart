@@ -15,12 +15,20 @@ class AgentModel {
   
   @HiveField(3)
   final int storeID;
+  
+  @HiveField(4)
+  final String username;
+  
+  @HiveField(5)
+  final String password;
 
   AgentModel({
     required this.id,
     required this.name,
     required this.token,
     required this.storeID,
+    required this.username,
+    required this.password,
   });
 
   factory AgentModel.fromJson(Map<String, dynamic> json) => AgentModel(
@@ -28,6 +36,8 @@ class AgentModel {
     name: json['name'],
     token: json['token'],
     storeID: json['storeID'],
+    username: json['username'] ?? '',
+    password: json['password'] ?? '',
   );
 
   Map<String, dynamic> toJson() => {
@@ -35,5 +45,7 @@ class AgentModel {
     'name': name,
     'token': token,
     'storeID': storeID,
+    'username': username,
+    'password': password,
   };
 }

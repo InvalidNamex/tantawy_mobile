@@ -142,8 +142,13 @@ class AuthController extends GetxController {
       await _storage.saveItems(items);
 
       for (var customer in customers) {
-        final priceListDetails = await _dataRepository.getPriceListDetails(customer.priceList.id);
-        await _storage.savePriceListDetails(priceListDetails);
+        // Only fetch price list details if customer has a price list
+        if (customer.priceList != null) {
+          final priceListDetails = await _dataRepository.getPriceListDetails(customer.priceList!.id);
+          await _storage.savePriceListDetails(priceListDetails);
+        } else {
+          logger.w('⚠️ Customer ${customer.customerName} (ID: ${customer.id}) has no price list');
+        }
       }
 
       await _dataRepository.syncData(agentId);

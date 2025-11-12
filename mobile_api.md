@@ -6,8 +6,15 @@ Quick reference for mobile app development with agent-specific endpoints.
 
 ## 🔐 Authentication
 
+### Authentication Methods
+
+Your API uses **HTTP Basic Authentication** for all mobile agent endpoints. There is NO token-based authentication currently implemented.
+
 ### Agent Login
-**POST** `/api/agents/login/`
+**POST** `/api/agents/login/`  
+**Auth:** None (Public endpoint)
+
+Use this endpoint to verify agent credentials and get agent information. The response includes agent details but does NOT return a usable token.
 
 ```json
 // Request
@@ -15,6 +22,39 @@ Quick reference for mobile app development with agent-specific endpoints.
 
 // Response
 {"success": true, "id": 7, "name": "Agent Name", "token": "agent_token", "storeID": 3}
+```
+
+> ⚠️ **Note:** The `token` field in the response is currently just the agent ID. For actual authentication, you must use Basic Auth (username:password) with each request.
+
+### How to Authenticate
+
+**All protected endpoints require HTTP Basic Authentication:**
+
+1. Encode agent credentials: `base64(username:password)`
+2. Send in Authorization header: `Authorization: Basic {encoded_credentials}`
+
+**Example (Python):**
+```python
+import base64
+import requests
+
+username = "agent_username"
+password = "agent_password"
+credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
+
+headers = {"Authorization": f"Basic {credentials}"}
+response = requests.get("https://api.example.com/api/agents/visit-plans/active-with-customers/", headers=headers)
+```
+
+**Example (JavaScript):**
+```javascript
+const username = "agent_username";
+const password = "agent_password";
+const credentials = btoa(`${username}:${password}`);
+
+fetch("https://api.example.com/api/agents/visit-plans/active-with-customers/", {
+  headers: {"Authorization": `Basic ${credentials}`}
+})
 ```
 
 ---
@@ -53,24 +93,28 @@ Returns today's active plan with customer list including price lists.
 ## 📊 GET Endpoints
 
 ### Get Sales Invoices
-**GET** `/api/agents/invoices/?agent_id=7&invoice_type=2`
+**GET** `/api/agents/invoices/?agent_id=7&invoice_type=2`  
+**Auth:** None (Public endpoint - filters by agent_id parameter)
 
 **Parameters:** `agent_id` (required), `invoice_type` (2=Sales, 4=Return), `date_from`, `date_to`, `customer_vendor`
 
 ### Get Receive Vouchers
-**GET** `/api/agents/transactions/?agent_id=7&transaction_type=1`
+**GET** `/api/agents/transactions/?agent_id=7&transaction_type=1`  
+**Auth:** None (Public endpoint - filters by agent_id parameter)
 
 **Parameters:** `agent_id` (required), `transaction_type` (1=Receipt, 2=Payment), `date_from`, `date_to`
 
 ### Get Negative Visits
-**GET** `/api/visits/negative/?agent_id=7`
+**GET** `/api/visits/negative/?agent_id=7`  
+**Auth:** None (Public endpoint - filters by agent_id parameter)
 
 **Parameters:** `agent_id` (required), `date_from`, `date_to`, `customer_vendor`
 
 Returns visits with no related invoices or transactions.
 
 ### Get Items (for Invoice Creation)
-**GET** `/api/items/`
+**GET** `/api/items/`  
+**Auth:** None (Public endpoint)
 
 Returns all items with details needed for invoice creation.
 
@@ -88,7 +132,8 @@ Returns all items with details needed for invoice creation.
 ```
 
 ### Get Price List Details
-**GET** `/api/price-list-details/pricelist/{pricelist_id}/`
+**GET** `/api/price-list-details/pricelist/{pricelist_id}/`  
+**Auth:** None (Public endpoint)
 
 Returns items with prices for a specific price list.
 
@@ -104,13 +149,31 @@ Returns items with prices for a specific price list.
 ]
 ```
 
+### Get Customers List
+**GET** `/api/customers/`  
+**Auth:** None (Public endpoint)
+
+Returns all active customers for dropdown/selection purposes.
+
+```json
+// Response
+{
+  "success": true,
+  "data": [
+    {"id": 175, "customerVendorName": "Customer Name"}
+  ]
+}
+```
+
 ---
 
 ## 📤 POST Endpoints - Bulk Operations
 
 ### Bulk Create Sales Invoices
 **POST** `/api/invoices/batch-create/`  
-**Auth:** Token or Basic Auth
+**Auth:** Basic Auth (username:password) OR Django Session (for web users)
+
+Accepts either HTTP Basic Authentication with agent credentials OR Django session authentication for web users.
 
 ```json
 {
@@ -140,7 +203,7 @@ Returns items with prices for a specific price list.
 
 ### Bulk Create Vouchers
 **POST** `/api/vouchers/batch-create/`  
-**Auth:** Basic Auth
+**Auth:** Basic Auth (username:password)
 
 ```json
 {
@@ -164,7 +227,7 @@ Returns items with prices for a specific price list.
 
 ### Bulk Create Visits
 **POST** `/api/visits/batch-create/`  
-**Auth:** Basic Auth
+**Auth:** Basic Auth (username:password)
 
 ```json
 {
@@ -186,46 +249,144 @@ Returns items with prices for a specific price list.
 
 ---
 
-## 🔑 Authentication
+## 🔑 Authentication Details
 
-### Basic Auth Header
+### Authentication Summary
+
+| Endpoint Type | Authentication Method | Details |
+|--------------|----------------------|---------|
+| Agent Login | None | Public endpoint for credential verification |
+| GET Endpoints (Read-only) | None | Public endpoints with agent_id filtering |
+| POST Endpoints (Bulk Operations) | Basic Auth | HTTP Basic Authentication required |
+| Visit Plans (Active) | Basic Auth | HTTP Basic Authentication required |
+
+### Basic Auth Implementation
+
+**Header Format:**
 ```
-Authorization: Basic base64(username:password)
+Authorization: Basic {base64_encoded_credentials}
 ```
 
-**Python:**
+**Python Example:**
 ```python
 import base64
+import requests
+
+# Agent credentials
+username = "agent_username"
+password = "agent_password"
+
+# Encode credentials
 credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
+
+# Make authenticated request
 headers = {"Authorization": f"Basic {credentials}"}
+response = requests.post(
+    "https://api.example.com/api/invoices/batch-create/",
+    headers=headers,
+    json={"invoices": [...]}
+)
 ```
 
-**JavaScript:**
+**JavaScript Example:**
 ```javascript
+// Agent credentials
+const username = "agent_username";
+const password = "agent_password";
+
+// Encode credentials
 const credentials = btoa(`${username}:${password}`);
-const headers = {"Authorization": `Basic ${credentials}`};
+
+// Make authenticated request
+fetch("https://api.example.com/api/invoices/batch-create/", {
+  method: "POST",
+  headers: {
+    "Authorization": `Basic ${credentials}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({invoices: [...]})
+});
+```
+
+**Flutter/Dart Example:**
+```dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+// Agent credentials
+String username = "agent_username";
+String password = "agent_password";
+
+// Encode credentials
+String credentials = base64Encode(utf8.encode('$username:$password'));
+
+// Make authenticated request
+final response = await http.post(
+  Uri.parse('https://api.example.com/api/invoices/batch-create/'),
+  headers: {
+    'Authorization': 'Basic $credentials',
+    'Content-Type': 'application/json',
+  },
+  body: jsonEncode({'invoices': [...]}),
+);
+```
+
+### Security Notes
+
+⚠️ **Important Security Considerations:**
+
+1. **Always use HTTPS** - Basic Auth sends credentials with every request, so HTTPS is mandatory
+2. **Store credentials securely** - Never hardcode credentials in your app
+3. **Session management** - Basic Auth is stateless; credentials are sent with each request
+4. **Error handling** - 401 Unauthorized means credentials are invalid or agent is inactive
+
+### Recommended Mobile App Flow
+
+```
+1. User Login
+   ↓
+2. Call /api/agents/login/ with username/password
+   ↓
+3. If successful, store credentials securely (Keychain/Keystore)
+   ↓
+4. For all subsequent requests:
+   - Encode username:password to Base64
+   - Add Authorization: Basic {credentials} header
+   ↓
+5. On 401 error, prompt user to login again
 ```
 
 ---
 
 ## 📝 Implementation Status
 
-| Endpoint | Status | URL |
-|----------|--------|-----|
-| Agent Login | ✅ | `/api/agents/login/` |
-| Get Active Visit Plan | ✅ | `/api/agents/visit-plans/active-with-customers/` |
-| Get Sales Invoices | ✅ | `/api/agents/invoices/` |
-| Get Receive Vouchers | ✅ | `/api/agents/transactions/` |
-| Get Negative Visits | ✅ | `/api/visits/negative/` |
-| Get Items | ✅ | `/api/items/` |
-| Get Price List Details | ✅ | `/api/price-list-details/pricelist/{id}/` |
-| Bulk Create Invoices | ✅ | `/api/invoices/batch-create/` |
-| Bulk Create Vouchers | ✅ | `/api/vouchers/batch-create/` |
-| Bulk Create Visits | ✅ | `/api/visits/batch-create/` |
+| Endpoint | Auth Required | Method | URL |
+|----------|---------------|--------|-----|
+| Agent Login | ❌ No | POST | `/api/agents/login/` |
+| Get Active Visit Plan | ✅ Basic Auth | GET | `/api/agents/visit-plans/active-with-customers/` |
+| Get Sales Invoices | ❌ No | GET | `/api/agents/invoices/?agent_id={id}` |
+| Get Receive Vouchers | ❌ No | GET | `/api/agents/transactions/?agent_id={id}` |
+| Get Negative Visits | ❌ No | GET | `/api/visits/negative/?agent_id={id}` |
+| Get Items | ❌ No | GET | `/api/items/` |
+| Get Customers | ❌ No | GET | `/api/customers/` |
+| Get Price List Details | ❌ No | GET | `/api/price-list-details/pricelist/{id}/` |
+| Bulk Create Invoices | ✅ Basic Auth | POST | `/api/invoices/batch-create/` |
+| Bulk Create Vouchers | ✅ Basic Auth | POST | `/api/vouchers/batch-create/` |
+| Bulk Create Visits | ✅ Basic Auth | POST | `/api/visits/batch-create/` |
+
+**Legend:**
+- ✅ = Authentication Required (HTTP Basic Auth)
+- ❌ = No Authentication Required (Public endpoint)
 
 ---
 
 ## 🚀 Key Features
+
+### Authentication Architecture
+- **Public GET endpoints** - No authentication required for read operations (filtered by agent_id parameter)
+- **Protected POST endpoints** - HTTP Basic Auth required for all write operations
+- **Hybrid support** - Batch invoice creation accepts both Basic Auth (mobile) and Django session (web)
+- **Security** - All protected endpoints validate agent credentials on each request
 
 ### Negative Visits
 - Dynamically filters visits with no related invoices/transactions
@@ -240,6 +401,33 @@ const headers = {"Authorization": `Basic ${credentials}`};
 
 ---
 
-**Version:** 2.0  
-**Last Updated:** 2025-10-23  
-**Status:** Production Ready
+## ⚠️ Important Notes for Frontend Developers
+
+### 1. Authentication Types
+- **Read-only operations (GET)**: No authentication needed, use `agent_id` parameter
+- **Write operations (POST)**: HTTP Basic Auth required
+
+### 2. Error Responses
+```json
+// 401 Unauthorized (Invalid credentials or inactive agent)
+{"success": false, "message": "Authentication required"}
+
+// 400 Bad Request (Validation error)
+{"success": false, "message": "Validation failed", "errors": ["..."]}
+
+// 500 Internal Server Error
+{"success": false, "message": "Error message"}
+```
+
+### 3. Date Format
+All dates should be in ISO 8601 format: `2025-10-23T14:30:00Z`
+
+### 4. Agent Status
+Agents must be `isActive=True` and `isDeleted=False` to authenticate
+
+---
+
+**Version:** 3.0  
+**Last Updated:** 2025-11-09  
+**Status:** Production Ready  
+**Authentication:** HTTP Basic Auth (username:password)
