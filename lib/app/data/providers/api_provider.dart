@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 import '../../utils/constants.dart';
 import '../../services/storage_service.dart';
 import '../../utils/logger.dart';
+import '../../utils/rate_limit_interceptor.dart';
 import 'package:get/get.dart' as getx;
 
 class ApiProvider {
@@ -18,6 +20,24 @@ class ApiProvider {
         'ngrok-skip-browser-warning': 'true', // Skip ngrok browser warning
       },
     ));
+
+    // Add retry interceptor for automatic retry with exponential backoff
+    _dio.interceptors.add(
+      RetryInterceptor(
+        dio: _dio,
+        logPrint: (message) => logger.d('🔄 Retry: $message'),
+        retries: 3, // Maximum 3 retries
+        retryDelays: const [
+          Duration(seconds: 1),  // First retry after 1 second
+          Duration(seconds: 3),  // Second retry after 3 seconds
+          Duration(seconds: 5),  // Third retry after 5 seconds
+        ],
+        retryableExtraStatuses: {408, 502, 503, 504}, // Retry on these status codes
+      ),
+    );
+
+    // Add rate limit interceptor to handle 429 errors
+    _dio.interceptors.add(RateLimitInterceptor());
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {

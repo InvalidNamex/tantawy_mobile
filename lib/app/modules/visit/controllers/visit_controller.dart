@@ -16,7 +16,7 @@ class VisitController extends GetxController {
   final ApiProvider _apiProvider = ApiProvider();
 
   late CustomerModel customer;
-  
+
   final notesController = TextEditingController();
   final RxBool isLoading = false.obs;
   final RxString location = ''.obs;
@@ -39,13 +39,13 @@ class VisitController extends GetxController {
 
   Future<void> submitVisit() async {
     if (notesController.text.isEmpty) {
-      Get.snackbar('error'.tr, 'Please enter notes');
+      Get.snackbar('error'.tr, 'please_enter_notes'.tr);
       return;
     }
 
     final position = await _locationService.getCurrentLocation();
     if (position == null) {
-      Get.snackbar('error'.tr, 'Cannot get location');
+      Get.snackbar('error'.tr, 'cannot_get_location'.tr);
       return;
     }
 

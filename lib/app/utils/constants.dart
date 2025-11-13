@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String baseURL = 'https://b93c85ee2096.ngrok-free.app'; 
+  static const String baseURL = 'https://tantawy.ezymanage.app'; 
   static const int customerAccountId = 36;
   static const int storeCashAccountId = 35;
   

@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../widgets/app_background.dart';
 import '../controllers/auth_controller.dart';
 
 class LoginView extends GetView<AuthController> {
+  LoginView({Key? key}) : super(key: key);
+
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      body: AppBackground(
+          child: 
+        
+      Center(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.person_outline, size: 100, color: Colors.green),
+              Image.asset(
+                'assets/images/logo.png',
+                width: 60,
+                height: 60,
+              ),
               SizedBox(height: 32),
               Text(
                 'app_name'.tr,
@@ -20,7 +33,7 @@ class LoginView extends GetView<AuthController> {
               ),
               SizedBox(height: 48),
               TextField(
-                controller: controller.usernameController,
+                controller: _usernameController,
                 decoration: InputDecoration(
                   labelText: 'username'.tr,
                   border: OutlineInputBorder(),
@@ -29,7 +42,7 @@ class LoginView extends GetView<AuthController> {
               ),
               SizedBox(height: 16),
               TextField(
-                controller: controller.passwordController,
+                controller: _passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'password'.tr,
@@ -42,7 +55,12 @@ class LoginView extends GetView<AuthController> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: controller.isLoading.value ? null : controller.login,
+                  onPressed: controller.isLoading.value 
+                      ? null 
+                      : () => controller.login(
+                          _usernameController.text,
+                          _passwordController.text,
+                        ),
                   child: controller.isLoading.value
                       ? CircularProgressIndicator(color: Colors.white)
                       : Text('login'.tr, style: TextStyle(fontSize: 18)),
@@ -52,6 +70,6 @@ class LoginView extends GetView<AuthController> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

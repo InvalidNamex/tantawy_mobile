@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/voucher_controller.dart';
+import '../../../widgets/app_background.dart';
 
 class VoucherView extends GetView<VoucherController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text('voucher'.tr),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
+      body: AppBackground(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('${'customer'.tr}: ${controller.customer.customerName}',
@@ -59,6 +65,7 @@ class VoucherView extends GetView<VoucherController> {
             )),
           ],
         ),
+      ),
       ),
     );
   }

@@ -14,6 +14,7 @@ class StorageService extends GetxService {
   late Box _pendingInvoicesBox;
   late Box _pendingVouchersBox;
   late Box _pendingVisitsBox;
+  late Box _settingsBox;
 
   Future<StorageService> init() async {
     await Hive.initFlutter();
@@ -33,6 +34,7 @@ class StorageService extends GetxService {
     _pendingInvoicesBox = await Hive.openBox('pending_invoices');
     _pendingVouchersBox = await Hive.openBox('pending_vouchers');
     _pendingVisitsBox = await Hive.openBox('pending_visits');
+    _settingsBox = await Hive.openBox('settings');
     
     return this;
   }
@@ -142,4 +144,23 @@ class StorageService extends GetxService {
       _pendingInvoicesBox.isNotEmpty ||
       _pendingVouchersBox.isNotEmpty ||
       _pendingVisitsBox.isNotEmpty;
+
+  // Settings - Theme and Language
+  Future<void> saveThemeMode(String themeMode) async {
+    await _settingsBox.put('themeMode', themeMode);
+    logger.d('✅ STORAGE: Theme mode saved - $themeMode');
+  }
+
+  String getThemeMode() {
+    return _settingsBox.get('themeMode', defaultValue: 'light');
+  }
+
+  Future<void> saveLanguage(String language) async {
+    await _settingsBox.put('language', language);
+    logger.d('✅ STORAGE: Language saved - $language');
+  }
+
+  String getLanguage() {
+    return _settingsBox.get('language', defaultValue: 'ar');
+  }
 }

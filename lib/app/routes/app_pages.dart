@@ -1,8 +1,17 @@
 import 'package:get/get.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/login_view.dart';
-import '../modules/home/bindings/home_binding.dart';
-import '../modules/home/views/home_view.dart';
+import '../modules/auth/views/splash_view.dart';
+import '../modules/home/bindings/invoices_binding.dart';
+import '../modules/home/bindings/orders_binding.dart';
+import '../modules/home/bindings/visit_plan_binding.dart';
+import '../modules/home/bindings/vouchers_binding.dart';
+import '../modules/home/bindings/negative_visits_binding.dart';
+import '../modules/home/views/invoices_view.dart';
+import '../modules/home/views/orders_view.dart';
+import '../modules/home/views/visit_plan_view.dart';
+import '../modules/home/views/vouchers_view.dart';
+import '../modules/home/views/negative_visits_view.dart';
 import '../modules/invoice/bindings/invoice_binding.dart';
 import '../modules/invoice/views/invoice_view.dart';
 import '../modules/voucher/bindings/voucher_binding.dart';
@@ -14,14 +23,52 @@ import 'app_routes.dart';
 class AppPages {
   static final routes = [
     GetPage(
+      name: AppRoutes.splash,
+      page: () => SplashView(),
+    ),
+    GetPage(
       name: AppRoutes.login,
       page: () => LoginView(),
       binding: AuthBinding(),
     ),
     GetPage(
       name: AppRoutes.home,
-      page: () => HomeView(),
-      binding: HomeBinding(),
+      page: () => VisitPlanView(),
+      binding: VisitPlanBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.invoices,
+      page: () => InvoicesView(),
+      binding: InvoicesBinding(),
+      transition: Transition.noTransition
+    ),
+    GetPage(
+      name: AppRoutes.orders,
+      page: () => OrdersView(),
+      binding: OrdersBinding(),
+      transition: Transition.noTransition
+
+    ),
+    GetPage(
+      name: AppRoutes.visitPlan,
+      page: () => VisitPlanView(),
+      binding: VisitPlanBinding(),
+      transition: Transition.noTransition
+
+    ),
+    GetPage(
+      name: AppRoutes.vouchers,
+      page: () => VouchersView(),
+      binding: VouchersBinding(),
+      transition: Transition.noTransition
+
+    ),
+    GetPage(
+      name: AppRoutes.negativeVisits,
+      page: () => NegativeVisitsView(),
+      binding: NegativeVisitsBinding(),
+      transition: Transition.noTransition
+
     ),
     GetPage(
       name: AppRoutes.invoice,

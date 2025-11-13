@@ -22,12 +22,13 @@ class InvoiceItemRow {
     required double price,
     double discount = 0.0,
     double vat = 0.0,
-  })  : quantity = quantity.obs,
-        price = price.obs,
-        discount = discount.obs,
-        vat = vat.obs;
+  }) : quantity = quantity.obs,
+       price = price.obs,
+       discount = discount.obs,
+       vat = vat.obs;
 
-  double get total => (quantity.value * price.value) - discount.value + vat.value;
+  double get total =>
+      (quantity.value * price.value) - discount.value + vat.value;
 }
 
 class InvoiceController extends GetxController {
@@ -37,7 +38,7 @@ class InvoiceController extends GetxController {
 
   late CustomerModel customer;
   late int invoiceType;
-  
+
   final RxList<InvoiceItemRow> selectedItems = <InvoiceItemRow>[].obs;
   final RxList<ItemModel> availableItems = <ItemModel>[].obs;
   final RxInt paymentType = AppConstants.paymentTypeCash.obs;
@@ -53,7 +54,8 @@ class InvoiceController extends GetxController {
     availableItems.value = _storage.getItems();
   }
 
-  double get netTotal => selectedItems.fold(0.0, (sum, item) => sum + item.total);
+  double get netTotal =>
+      selectedItems.fold(0.0, (sum, item) => sum + item.total);
 
   void showItemSelectionDialog() {
     Get.dialog(
@@ -64,7 +66,10 @@ class InvoiceController extends GetxController {
             children: [
               Padding(
                 padding: EdgeInsets.all(16),
-                child: Text('select_items'.tr, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                child: Text(
+                  'select_items'.tr,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
               ),
               Expanded(
                 child: ListView.builder(
@@ -79,7 +84,9 @@ class InvoiceController extends GetxController {
                         if (selected == true) {
                           _addItem(item);
                         } else {
-                          selectedItems.removeWhere((i) => i.item.id == item.id);
+                          selectedItems.removeWhere(
+                            (i) => i.item.id == item.id,
+                          );
                         }
                       },
                     );
@@ -102,18 +109,19 @@ class InvoiceController extends GetxController {
 
   void _addItem(ItemModel item) {
     double defaultPrice = 0.0;
-    
+
     // Only get price list details if customer has a price list
     if (customer.priceList != null) {
-      final priceListDetails = _storage.getPriceListDetails(customer.priceList!.id);
-      final priceDetail = priceListDetails.firstWhereOrNull((p) => p.item.id == item.id);
+      final priceListDetails = _storage.getPriceListDetails(
+        customer.priceList!.id,
+      );
+      final priceDetail = priceListDetails.firstWhereOrNull(
+        (p) => p.item.id == item.id,
+      );
       defaultPrice = priceDetail?.price ?? 0.0;
     }
 
-    selectedItems.add(InvoiceItemRow(
-      item: item,
-      price: defaultPrice,
-    ));
+    selectedItems.add(InvoiceItemRow(item: item, price: defaultPrice));
   }
 
   void removeItem(int index) {
@@ -122,7 +130,7 @@ class InvoiceController extends GetxController {
 
   Future<void> submitInvoice() async {
     if (selectedItems.isEmpty) {
-      Get.snackbar('error'.tr, 'Please add items');
+      Get.snackbar('error'.tr, 'please_add_items'.tr);
       return;
     }
 
@@ -140,13 +148,17 @@ class InvoiceController extends GetxController {
         netTotal: netTotal,
         totalPaid: double.tryParse(totalPaidController.text) ?? 0.0,
       ),
-      invoiceDetails: selectedItems.map((item) => InvoiceDetail(
-        item: item.item.id,
-        quantity: item.quantity.value,
-        price: item.price.value,
-        discount: item.discount.value,
-        vat: item.vat.value,
-      )).toList(),
+      invoiceDetails: selectedItems
+          .map(
+            (item) => InvoiceDetail(
+              item: item.item.id,
+              quantity: item.quantity.value,
+              price: item.price.value,
+              discount: item.discount.value,
+              vat: item.vat.value,
+            ),
+          )
+          .toList(),
     );
 
     final hasConnection = await _connectivity.checkConnection();
@@ -158,11 +170,11 @@ class InvoiceController extends GetxController {
       if (hasConnection) {
         await _apiProvider.batchCreateInvoices([invoice.toJson()]);
         logger.i('Invoice created successfully online');
-        Get.snackbar('success'.tr, 'Invoice created successfully');
+        Get.snackbar('success'.tr, 'invoice_created'.tr);
       } else {
         await _storage.addPendingInvoice(invoice.toJson());
         logger.i('Invoice saved offline for sync');
-        Get.snackbar('offline_mode'.tr, 'Invoice saved for sync');
+        Get.snackbar('offline_mode'.tr, 'invoice_saved_sync'.tr);
       }
 
       Get.back();

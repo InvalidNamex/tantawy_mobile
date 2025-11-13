@@ -4,20 +4,21 @@ import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 import 'app/theme/app_theme.dart';
 import 'app/utils/translations.dart';
-import 'app/services/storage_service.dart';
-import 'app/services/connectivity_service.dart';
+import 'app/services/dependency_injection.dart';
+import 'app/modules/settings/controllers/settings_controller.dart';
 import 'app/utils/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   try {
-    final storageService = await StorageService().init();
-    Get.put(storageService);
-    final connectivityService = await ConnectivityService().init();
-    Get.put(connectivityService);
-    logger.i('Services initialized successfully');
+    await DependencyInjection.init();
   } catch (e, stackTrace) {
-    logger.e('Failed to initialize services', error: e, stackTrace: stackTrace);
+    logger.e(
+      'Failed to initialize dependencies',
+      error: e,
+      stackTrace: stackTrace,
+    );
   }
   runApp(MyApp());
 }
@@ -25,17 +26,21 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'Tantawy',
-      translations: AppTranslations(),
-      locale: Locale('ar'),
-      fallbackLocale: Locale('en'),
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      initialRoute: AppRoutes.login,
-      getPages: AppPages.routes,
-      debugShowCheckedModeBanner: false,
+    final settingsController = Get.find<SettingsController>();
+
+    return Obx(
+      () => GetMaterialApp(
+        title: 'Tantawy',
+        translations: AppTranslations(),
+        locale: Locale(settingsController.currentLocale.value),
+        fallbackLocale: Locale('en'),
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: settingsController.themeMode.value,
+        initialRoute: AppRoutes.splash,
+        getPages: AppPages.routes,
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }

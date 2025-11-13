@@ -25,8 +25,12 @@ class PriceListDetailModel {
 
   factory PriceListDetailModel.fromJson(Map<String, dynamic> json) => PriceListDetailModel(
     id: json['id'],
-    item: ItemInfo.fromJson(json['item']),
-    priceList: PriceListInfoDetail.fromJson(json['priceList']),
+    item: json['item'] is Map<String, dynamic> 
+        ? ItemInfo.fromJson(json['item'])
+        : ItemInfo(id: json['item'] as int, itemName: ''),
+    priceList: json['priceList'] is Map<String, dynamic>
+        ? PriceListInfoDetail.fromJson(json['priceList'])
+        : PriceListInfoDetail(id: json['priceList'] as int, priceListName: ''),
     price: (json['price'] as num).toDouble(),
   );
 

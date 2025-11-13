@@ -14,7 +14,7 @@ class VoucherController extends GetxController {
   final ApiProvider _apiProvider = ApiProvider();
 
   late CustomerModel customer;
-  
+
   final amountController = TextEditingController();
   final notesController = TextEditingController();
   final RxBool isReceive = true.obs;
@@ -28,7 +28,7 @@ class VoucherController extends GetxController {
 
   Future<void> submitVoucher() async {
     if (amountController.text.isEmpty) {
-      Get.snackbar('error'.tr, 'Please enter amount');
+      Get.snackbar('error'.tr, 'please_enter_amount'.tr);
       return;
     }
 
@@ -36,7 +36,9 @@ class VoucherController extends GetxController {
     if (agent == null) return;
 
     final voucher = VoucherModel(
-      type: isReceive.value ? AppConstants.voucherTypeReceipt : AppConstants.voucherTypePayment,
+      type: isReceive.value
+          ? AppConstants.voucherTypeReceipt
+          : AppConstants.voucherTypePayment,
       customerVendorId: customer.id,
       amount: double.parse(amountController.text),
       storeId: agent.storeID,
@@ -54,11 +56,11 @@ class VoucherController extends GetxController {
       if (hasConnection) {
         await _apiProvider.batchCreateVouchers([voucher.toJson()]);
         logger.i('Voucher created successfully online');
-        Get.snackbar('success'.tr, 'Voucher created successfully');
+        Get.snackbar('success'.tr, 'voucher_created'.tr);
       } else {
         await _storage.addPendingVoucher(voucher.toJson());
         logger.i('Voucher saved offline for sync');
-        Get.snackbar('offline_mode'.tr, 'Voucher saved for sync');
+        Get.snackbar('offline_mode'.tr, 'voucher_saved_sync'.tr);
       }
 
       Get.back();

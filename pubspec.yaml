@@ -14,12 +14,14 @@ dependencies:
   cupertino_icons: ^1.0.8
   get: ^5.0.0-release-candidate-9.3.2
   dio: ^5.9.0
+  dio_smart_retry: ^6.0.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   connectivity_plus: ^6.1.2
   geolocator: ^13.0.2
   intl: ^0.19.0
   logger: ^2.5.0
+  curved_navigation_bar: ^1.0.6
   
 dev_dependencies:
   flutter_test:
@@ -33,9 +35,12 @@ flutter:
   assets:
     - assets/images/fail.png
     - assets/images/invoice.png
+    - assets/images/logo.png
     - assets/images/map.png
     - assets/images/order.png
     - assets/images/receipt.png
+    - assets/images/bg.png
+    - assets/images/bg-light.png
 
   fonts:
     - family: Cairo
