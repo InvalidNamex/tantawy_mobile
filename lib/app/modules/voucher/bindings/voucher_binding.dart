@@ -1,11 +1,9 @@
 import 'package:get/get.dart';
 import '../controllers/voucher_controller.dart';
 
-class VoucherBinding extends Binding {
+class VoucherBinding implements Bindings {
   @override
-  List<Bind> dependencies() {
-    return [
-      Bind.lazyPut<VoucherController>(() => VoucherController()),
-    ];
+  void dependencies() {
+    Get.lazyPut<VoucherController>(() => VoucherController());
   }
 }

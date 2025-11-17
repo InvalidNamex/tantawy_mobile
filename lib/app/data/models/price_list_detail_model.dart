@@ -6,13 +6,13 @@ part 'price_list_detail_model.g.dart';
 class PriceListDetailModel {
   @HiveField(0)
   final int id;
-  
+
   @HiveField(1)
   final ItemInfo item;
-  
+
   @HiveField(2)
   final PriceListInfoDetail priceList;
-  
+
   @HiveField(3)
   final double price;
 
@@ -23,16 +23,23 @@ class PriceListDetailModel {
     required this.price,
   });
 
-  factory PriceListDetailModel.fromJson(Map<String, dynamic> json) => PriceListDetailModel(
-    id: json['id'],
-    item: json['item'] is Map<String, dynamic> 
-        ? ItemInfo.fromJson(json['item'])
-        : ItemInfo(id: json['item'] as int, itemName: ''),
-    priceList: json['priceList'] is Map<String, dynamic>
-        ? PriceListInfoDetail.fromJson(json['priceList'])
-        : PriceListInfoDetail(id: json['priceList'] as int, priceListName: ''),
-    price: (json['price'] as num).toDouble(),
-  );
+  factory PriceListDetailModel.fromJson(Map<String, dynamic> json) =>
+      PriceListDetailModel(
+        id: json['id'],
+        item: json['item'] is Map<String, dynamic>
+            ? ItemInfo.fromJson(json['item'])
+            : ItemInfo(
+                id: json['item'] as int,
+                itemName: json['item_name'] ?? '',
+              ),
+        priceList: json['priceList'] is Map<String, dynamic>
+            ? PriceListInfoDetail.fromJson(json['priceList'])
+            : PriceListInfoDetail(
+                id: json['priceList'] as int,
+                priceListName: json['price_list_name'] ?? '',
+              ),
+        price: (json['price'] as num).toDouble(),
+      );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -46,16 +53,14 @@ class PriceListDetailModel {
 class ItemInfo {
   @HiveField(0)
   final int id;
-  
+
   @HiveField(1)
   final String itemName;
 
   ItemInfo({required this.id, required this.itemName});
 
-  factory ItemInfo.fromJson(Map<String, dynamic> json) => ItemInfo(
-    id: json['id'],
-    itemName: json['itemName'],
-  );
+  factory ItemInfo.fromJson(Map<String, dynamic> json) =>
+      ItemInfo(id: json['id'], itemName: json['itemName']);
 
   Map<String, dynamic> toJson() => {'id': id, 'itemName': itemName};
 }
@@ -64,16 +69,14 @@ class ItemInfo {
 class PriceListInfoDetail {
   @HiveField(0)
   final int id;
-  
+
   @HiveField(1)
   final String priceListName;
 
   PriceListInfoDetail({required this.id, required this.priceListName});
 
-  factory PriceListInfoDetail.fromJson(Map<String, dynamic> json) => PriceListInfoDetail(
-    id: json['id'],
-    priceListName: json['priceListName'],
-  );
+  factory PriceListInfoDetail.fromJson(Map<String, dynamic> json) =>
+      PriceListInfoDetail(id: json['id'], priceListName: json['priceListName']);
 
   Map<String, dynamic> toJson() => {'id': id, 'priceListName': priceListName};
 }

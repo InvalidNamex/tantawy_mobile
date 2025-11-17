@@ -5,6 +5,7 @@ import '../../../data/models/item_model.dart';
 import '../../../data/models/invoice_model.dart';
 import '../../../services/storage_service.dart';
 import '../../../services/connectivity_service.dart';
+import '../../../services/location_service.dart';
 import '../../../data/providers/api_provider.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/logger.dart';
@@ -34,6 +35,7 @@ class InvoiceItemRow {
 class InvoiceController extends GetxController {
   final StorageService _storage = Get.find<StorageService>();
   final ConnectivityService _connectivity = Get.find<ConnectivityService>();
+  final LocationService _locationService = Get.put(LocationService());
   final ApiProvider _apiProvider = ApiProvider();
 
   late CustomerModel customer;
@@ -131,6 +133,12 @@ class InvoiceController extends GetxController {
   Future<void> submitInvoice() async {
     if (selectedItems.isEmpty) {
       Get.snackbar('error'.tr, 'please_add_items'.tr);
+      return;
+    }
+
+    // Check location permission before proceeding
+    bool hasPermission = await _locationService.requestLocationPermission();
+    if (!hasPermission) {
       return;
     }
 

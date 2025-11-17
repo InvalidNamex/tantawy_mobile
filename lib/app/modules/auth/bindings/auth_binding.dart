@@ -1,10 +1,9 @@
 import 'package:get/get.dart';
 
-class AuthBinding extends Binding {
+class AuthBinding implements Bindings {
   @override
-  List<Bind> dependencies() {
+  void dependencies() {
     // AuthController is now a global permanent singleton initialized in main.dart
     // No need to bind it here
-    return [];
   }
 }

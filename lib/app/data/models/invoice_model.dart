@@ -1,3 +1,8 @@
+import 'package:hive/hive.dart';
+
+part 'invoice_model.g.dart';
+
+// Model for creating invoices (POST)
 class InvoiceModel {
   final InvoiceMaster invoiceMaster;
   final List<InvoiceDetail> invoiceDetails;
@@ -59,13 +64,110 @@ class InvoiceDetail {
   });
 
   Map<String, dynamic> toJson() {
-    final json = {
-      'item': item,
-      'quantity': quantity,
-      'price': price,
-    };
+    final json = {'item': item, 'quantity': quantity, 'price': price};
     if (discount != null) json['discount'] = discount!;
     if (vat != null) json['vat'] = vat!;
     return json;
   }
+}
+
+// Model for receiving invoices from API (GET)
+@HiveType(typeId: 10)
+class InvoiceResponseModel extends HiveObject {
+  @HiveField(0)
+  final int id;
+
+  @HiveField(1)
+  final int invoiceType;
+
+  @HiveField(2)
+  final String? invoiceNumber;
+
+  @HiveField(3)
+  final String customerVendorName;
+
+  @HiveField(4)
+  final int customerVendorId;
+
+  @HiveField(5)
+  final double netTotal;
+
+  @HiveField(6)
+  final double totalPaid;
+
+  @HiveField(7)
+  final int status;
+
+  @HiveField(8)
+  final int paymentType;
+
+  @HiveField(9)
+  final DateTime invoiceDate;
+
+  @HiveField(10)
+  final int storeId;
+
+  @HiveField(11)
+  final int agentId;
+
+  InvoiceResponseModel({
+    required this.id,
+    required this.invoiceType,
+    this.invoiceNumber,
+    required this.customerVendorName,
+    required this.customerVendorId,
+    required this.netTotal,
+    required this.totalPaid,
+    required this.status,
+    required this.paymentType,
+    required this.invoiceDate,
+    required this.storeId,
+    required this.agentId,
+  });
+
+  factory InvoiceResponseModel.fromJson(Map<String, dynamic> json) {
+    return InvoiceResponseModel(
+      id: json['id'] ?? 0,
+      invoiceType: json['invoiceType'] ?? json['invoice_type'] ?? 0,
+      invoiceNumber:
+          json['invoiceNumber']?.toString() ??
+          json['invoice_number']?.toString(),
+      customerVendorName:
+          json['customerName'] ??
+          json['customer_vendor_name'] ??
+          json['customerVendorName'] ??
+          '',
+      customerVendorId:
+          json['customerId'] ??
+          json['customer_vendor_id'] ??
+          json['customerVendorId'] ??
+          0,
+      netTotal: (json['netTotal'] ?? json['net_total'] ?? 0.0).toDouble(),
+      totalPaid: (json['totalPaid'] ?? json['total_paid'] ?? 0.0).toDouble(),
+      status: json['status'] ?? 0,
+      paymentType: json['paymentType'] ?? json['payment_type'] ?? 1,
+      invoiceDate: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : (json['invoice_date'] != null || json['invoiceDate'] != null
+                ? DateTime.parse(json['invoice_date'] ?? json['invoiceDate'])
+                : DateTime.now()),
+      storeId: json['storeId'] ?? json['store_id'] ?? 0,
+      agentId: json['agentId'] ?? json['agent_id'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'invoice_type': invoiceType,
+    'invoice_number': invoiceNumber,
+    'customer_vendor_name': customerVendorName,
+    'customer_vendor_id': customerVendorId,
+    'net_total': netTotal,
+    'total_paid': totalPaid,
+    'status': status,
+    'payment_type': paymentType,
+    'invoice_date': invoiceDate.toIso8601String(),
+    'store_id': storeId,
+    'agent_id': agentId,
+  };
 }

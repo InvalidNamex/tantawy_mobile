@@ -4,6 +4,11 @@ import '../data/models/agent_model.dart';
 import '../data/models/customer_model.dart';
 import '../data/models/item_model.dart';
 import '../data/models/price_list_detail_model.dart';
+import '../data/models/invoice_model.dart';
+import '../data/models/voucher_model.dart';
+import '../data/models/visit_model.dart';
+import '../data/models/stock_model.dart';
+import '../data/models/cash_balance_model.dart';
 import '../utils/logger.dart';
 
 class StorageService extends GetxService {
@@ -11,6 +16,11 @@ class StorageService extends GetxService {
   late Box<CustomerModel> _customerBox;
   late Box<ItemModel> _itemBox;
   late Box<PriceListDetailModel> _priceListBox;
+  late Box<InvoiceResponseModel> _invoicesBox;
+  late Box<VoucherResponseModel> _vouchersBox;
+  late Box<VisitResponseModel> _visitsBox;
+  late Box<StockModel> _stockBox;
+  late Box<CashBalanceModel> _cashBalanceBox;
   late Box _pendingInvoicesBox;
   late Box _pendingVouchersBox;
   late Box _pendingVisitsBox;
@@ -18,7 +28,7 @@ class StorageService extends GetxService {
 
   Future<StorageService> init() async {
     await Hive.initFlutter();
-    
+
     Hive.registerAdapter(AgentModelAdapter());
     Hive.registerAdapter(CustomerModelAdapter());
     Hive.registerAdapter(PriceListInfoAdapter());
@@ -26,16 +36,26 @@ class StorageService extends GetxService {
     Hive.registerAdapter(PriceListDetailModelAdapter());
     Hive.registerAdapter(ItemInfoAdapter());
     Hive.registerAdapter(PriceListInfoDetailAdapter());
-    
+    Hive.registerAdapter(InvoiceResponseModelAdapter());
+    Hive.registerAdapter(VoucherResponseModelAdapter());
+    Hive.registerAdapter(VisitResponseModelAdapter());
+    Hive.registerAdapter(StockModelAdapter());
+    Hive.registerAdapter(CashBalanceModelAdapter());
+
     _agentBox = await Hive.openBox<AgentModel>('agent');
     _customerBox = await Hive.openBox<CustomerModel>('customers');
     _itemBox = await Hive.openBox<ItemModel>('items');
     _priceListBox = await Hive.openBox<PriceListDetailModel>('price_lists');
+    _invoicesBox = await Hive.openBox<InvoiceResponseModel>('invoices');
+    _vouchersBox = await Hive.openBox<VoucherResponseModel>('vouchers');
+    _visitsBox = await Hive.openBox<VisitResponseModel>('visits');
+    _stockBox = await Hive.openBox<StockModel>('stock');
+    _cashBalanceBox = await Hive.openBox<CashBalanceModel>('cash_balance');
     _pendingInvoicesBox = await Hive.openBox('pending_invoices');
     _pendingVouchersBox = await Hive.openBox('pending_vouchers');
     _pendingVisitsBox = await Hive.openBox('pending_visits');
     _settingsBox = await Hive.openBox('settings');
-    
+
     return this;
   }
 
@@ -95,6 +115,93 @@ class StorageService extends GetxService {
         .toList();
   }
 
+  // Invoices (fetched from server)
+  Future<void> saveInvoices(List<InvoiceResponseModel> invoices) async {
+    await _invoicesBox.clear();
+    for (var invoice in invoices) {
+      await _invoicesBox.put(invoice.id, invoice);
+    }
+    logger.d('✅ STORAGE: ${invoices.length} invoices saved');
+  }
+
+  List<InvoiceResponseModel> getInvoices() {
+    return _invoicesBox.values.toList();
+  }
+
+  List<InvoiceResponseModel> getInvoicesByType(int invoiceType) {
+    return _invoicesBox.values
+        .where((invoice) => invoice.invoiceType == invoiceType)
+        .toList();
+  }
+
+  List<InvoiceResponseModel> getFilteredInvoices({
+    int? invoiceType,
+    DateTime? fromDate,
+    DateTime? toDate,
+  }) {
+    var invoices = _invoicesBox.values.toList();
+
+    if (invoiceType != null) {
+      invoices = invoices
+          .where((inv) => inv.invoiceType == invoiceType)
+          .toList();
+    }
+
+    if (fromDate != null) {
+      invoices = invoices.where((inv) {
+        return inv.invoiceDate.isAfter(fromDate.subtract(Duration(days: 1)));
+      }).toList();
+    }
+
+    if (toDate != null) {
+      invoices = invoices.where((inv) {
+        return inv.invoiceDate.isBefore(toDate.add(Duration(days: 1)));
+      }).toList();
+    }
+
+    return invoices;
+  }
+
+  // Vouchers
+  Future<void> saveVouchers(List<VoucherResponseModel> vouchers) async {
+    await _vouchersBox.clear();
+    await _vouchersBox.addAll(vouchers);
+  }
+
+  List<VoucherResponseModel> getVouchers() {
+    return _vouchersBox.values.toList();
+  }
+
+  List<VoucherResponseModel> getVouchersByType(int type) {
+    return _vouchersBox.values.where((v) => v.type == type).toList();
+  }
+
+  List<VoucherResponseModel> getFilteredVouchers({
+    int? type,
+    DateTime? fromDate,
+    DateTime? toDate,
+  }) {
+    List<VoucherResponseModel> vouchers = _vouchersBox.values.toList();
+
+    if (type != null) {
+      vouchers = vouchers.where((v) => v.type == type).toList();
+    }
+
+    if (fromDate != null) {
+      vouchers = vouchers.where((v) {
+        return v.voucherDate.isAfter(fromDate.subtract(Duration(days: 1)));
+      }).toList();
+    }
+
+    if (toDate != null) {
+      vouchers = vouchers.where((v) {
+        return v.voucherDate.isBefore(toDate.add(Duration(days: 1)));
+      }).toList();
+    }
+
+    return vouchers;
+  }
+
   // Pending Invoices
   Future<void> addPendingInvoice(Map<String, dynamic> invoice) async {
     await _pendingInvoicesBox.add(invoice);
@@ -144,6 +251,88 @@ class StorageService extends GetxService {
       _pendingInvoicesBox.isNotEmpty ||
       _pendingVouchersBox.isNotEmpty ||
       _pendingVisitsBox.isNotEmpty;
+
+  // Get counts for sync dialog
+  int get pendingInvoicesCount => _pendingInvoicesBox.length;
+  int get pendingVouchersCount => _pendingVouchersBox.length;
+  int get pendingVisitsCount => _pendingVisitsBox.length;
+
+  // Remove specific items by index (for granular sync control)
+  Future<void> removePendingInvoiceAt(int index) async {
+    final key = _pendingInvoicesBox.keys.elementAt(index);
+    await _pendingInvoicesBox.delete(key);
+  }
+
+  Future<void> removePendingVoucherAt(int index) async {
+    final key = _pendingVouchersBox.keys.elementAt(index);
+    await _pendingVouchersBox.delete(key);
+  }
+
+  Future<void> removePendingVisitAt(int index) async {
+    final key = _pendingVisitsBox.keys.elementAt(index);
+    await _pendingVisitsBox.delete(key);
+  }
+
+  // Visits (Negative Visits)
+  Future<void> saveVisits(List<VisitResponseModel> visits) async {
+    await _visitsBox.clear();
+    await _visitsBox.addAll(visits);
+    logger.d('✅ STORAGE: ${visits.length} visits saved');
+  }
+
+  List<VisitResponseModel> getVisits() {
+    return _visitsBox.values.toList();
+  }
+
+  List<VisitResponseModel> getFilteredVisits({
+    DateTime? fromDate,
+    DateTime? toDate,
+    int? customerId,
+  }) {
+    List<VisitResponseModel> visits = _visitsBox.values.toList();
+
+    if (customerId != null) {
+      visits = visits.where((v) => v.customerVendorId == customerId).toList();
+    }
+
+    if (fromDate != null) {
+      visits = visits.where((v) {
+        return v.date.isAfter(fromDate.subtract(Duration(days: 1)));
+      }).toList();
+    }
+
+    if (toDate != null) {
+      visits = visits.where((v) {
+        return v.date.isBefore(toDate.add(Duration(days: 1)));
+      }).toList();
+    }
+
+    return visits;
+  }
+
+  // Stock
+  Future<void> saveStock(List<StockModel> stock) async {
+    await _stockBox.clear();
+    for (var item in stock) {
+      await _stockBox.put(item.itemId, item);
+    }
+    logger.d('✅ STORAGE: ${stock.length} stock items saved');
+  }
+
+  List<StockModel> getStock() {
+    return _stockBox.values.toList();
+  }
+
+  // Cash Balance
+  Future<void> saveCashBalance(CashBalanceModel balance) async {
+    await _cashBalanceBox.clear();
+    await _cashBalanceBox.put('latest', balance);
+    logger.d('✅ STORAGE: Cash balance saved');
+  }
+
+  CashBalanceModel? getCashBalance() {
+    return _cashBalanceBox.get('latest');
+  }
 
   // Settings - Theme and Language
   Future<void> saveThemeMode(String themeMode) async {

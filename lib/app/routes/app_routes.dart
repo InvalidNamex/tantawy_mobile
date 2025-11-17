@@ -10,4 +10,7 @@ class AppRoutes {
   static const visitPlan = '/visit-plan';
   static const vouchers = '/vouchers';
   static const negativeVisits = '/negative-visits';
+  static const reports = '/reports';
+  static const itemsStock = '/items-stock';
+  static const cashBalance = '/cash-balance';
 }

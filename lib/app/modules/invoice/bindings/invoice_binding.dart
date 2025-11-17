@@ -1,11 +1,9 @@
 import 'package:get/get.dart';
 import '../controllers/invoice_controller.dart';
 
-class InvoiceBinding extends Binding {
+class InvoiceBinding implements Bindings {
   @override
-  List<Bind> dependencies() {
-    return [
-      Bind.lazyPut<InvoiceController>(() => InvoiceController()),
-    ];
+  void dependencies() {
+    Get.lazyPut<InvoiceController>(() => InvoiceController());
   }
 }

@@ -202,6 +202,12 @@ class AuthController extends GetxController {
 
   Future<void> _fetchInitialData(int agentId) async {
     try {
+      final agent = _storage.getAgent();
+      if (agent == null) {
+        logger.e('❌ No agent found in storage');
+        return;
+      }
+
       logger.d('📊 FETCH: Starting getActiveVisitPlan for agent $agentId...');
       final customers = await _dataRepository.getActiveVisitPlan();
       logger.d(
@@ -215,20 +221,14 @@ class AuthController extends GetxController {
       final items = await _dataRepository.getItems();
       await _storage.saveItems(items);
 
-      for (var customer in customers) {
-        if (customer.priceList != null) {
-          final priceListDetails = await _dataRepository.getPriceListDetails(
-            customer.priceList!.id,
-          );
-          await _storage.savePriceListDetails(priceListDetails);
-        } else {
-          logger.w(
-            '⚠️ Customer ${customer.customerName} (ID: ${customer.id}) has no price list',
-          );
-        }
-      }
+      logger.i('💾 Fetching all price list details...');
+      final priceListDetails = await _dataRepository.getAllPriceListDetails();
+      await _storage.savePriceListDetails(priceListDetails);
+      logger.i(
+        '✅ Saved ${priceListDetails.length} price list details to cache',
+      );
 
-      await _dataRepository.syncData(agentId);
+      await _dataRepository.syncData(agentId, agent.storeID);
       logger.i('Initial data fetched successfully');
     } catch (e, stackTrace) {
       logger.e('Error fetching initial data', error: e, stackTrace: stackTrace);

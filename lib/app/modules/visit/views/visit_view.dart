@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/visit_controller.dart';
 import '../../../widgets/app_background.dart';
+import '../../../widgets/loading_button.dart';
 
 class VisitView extends GetView<VisitController> {
+  const VisitView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,43 +18,38 @@ class VisitView extends GetView<VisitController> {
         elevation: 0,
       ),
       body: AppBackground(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
-          child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text('${'customer'.tr}: ${controller.customer.customerName}',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 24),
-            TextField(
-              controller: controller.notesController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                labelText: 'notes'.tr,
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.note),
+            SizedBox(height: kToolbarHeight + 30),
+            Text(
+              '${'customer'.tr}: ${controller.customer.customerName}',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: controller.notesController,
+                maxLines: 7,
+                decoration: InputDecoration(
+                  labelText: 'notes'.tr,
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.note),
+                ),
               ),
             ),
-            SizedBox(height: 16),
-            Obx(() => ListTile(
-              leading: Icon(Icons.location_on, color: Colors.green),
-              title: Text('location'.tr),
-              subtitle: Text(controller.location.value),
-            )),
-            SizedBox(height: 24),
-            Obx(() => SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: controller.isLoading.value ? null : controller.submitVisit,
-                child: controller.isLoading.value
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : Text('submit'.tr),
+            Spacer(),
+            Obx(
+              () => LoadingButton(
+                isLoading: controller.isLoading.value,
+                onPressed: controller.submitVisit,
+                text: 'submit'.tr,
               ),
-            )),
+            ),
+            SizedBox(height: 20),
           ],
         ),
-      ),
       ),
     );
   }

@@ -1,11 +1,9 @@
 import 'package:get/get.dart';
 import '../controllers/visit_controller.dart';
 
-class VisitBinding extends Binding {
+class VisitBinding implements Bindings {
   @override
-  List<Bind> dependencies() {
-    return [
-      Bind.lazyPut<VisitController>(() => VisitController()),
-    ];
+  void dependencies() {
+    Get.lazyPut<VisitController>(() => VisitController());
   }
 }

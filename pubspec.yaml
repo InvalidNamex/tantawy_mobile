@@ -41,6 +41,10 @@ flutter:
     - assets/images/receipt.png
     - assets/images/bg.png
     - assets/images/bg-light.png
+    - assets/images/transactions/new-invoice.png
+    - assets/images/transactions/new-return-invoice.png
+    - assets/images/transactions/new-receipt.png
+    - assets/images/transactions/new-negative-visit.png
 
   fonts:
     - family: Cairo

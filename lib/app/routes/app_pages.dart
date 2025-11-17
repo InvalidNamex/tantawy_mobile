@@ -18,14 +18,17 @@ import '../modules/voucher/bindings/voucher_binding.dart';
 import '../modules/voucher/views/voucher_view.dart';
 import '../modules/visit/bindings/visit_binding.dart';
 import '../modules/visit/views/visit_view.dart';
+import '../modules/reports/bindings/reports_binding.dart';
+import '../modules/reports/bindings/items_stock_binding.dart';
+import '../modules/reports/bindings/cash_balance_binding.dart';
+import '../modules/reports/views/reports_view.dart';
+import '../modules/reports/views/items_stock_view.dart';
+import '../modules/reports/views/cash_balance_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
   static final routes = [
-    GetPage(
-      name: AppRoutes.splash,
-      page: () => SplashView(),
-    ),
+    GetPage(name: AppRoutes.splash, page: () => SplashView()),
     GetPage(
       name: AppRoutes.login,
       page: () => LoginView(),
@@ -40,35 +43,31 @@ class AppPages {
       name: AppRoutes.invoices,
       page: () => InvoicesView(),
       binding: InvoicesBinding(),
-      transition: Transition.noTransition
+      transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.orders,
       page: () => OrdersView(),
       binding: OrdersBinding(),
-      transition: Transition.noTransition
-
+      transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.visitPlan,
       page: () => VisitPlanView(),
       binding: VisitPlanBinding(),
-      transition: Transition.noTransition
-
+      transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.vouchers,
       page: () => VouchersView(),
       binding: VouchersBinding(),
-      transition: Transition.noTransition
-
+      transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.negativeVisits,
       page: () => NegativeVisitsView(),
       binding: NegativeVisitsBinding(),
-      transition: Transition.noTransition
-
+      transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.invoice,
@@ -84,6 +83,21 @@ class AppPages {
       name: AppRoutes.visit,
       page: () => VisitView(),
       binding: VisitBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.reports,
+      page: () => ReportsView(),
+      binding: ReportsBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.itemsStock,
+      page: () => ItemsStockView(),
+      binding: ItemsStockBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.cashBalance,
+      page: () => CashBalanceView(),
+      binding: CashBalanceBinding(),
     ),
   ];
 }

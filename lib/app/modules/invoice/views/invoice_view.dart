@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/invoice_controller.dart';
 import '../../../utils/constants.dart';
 import '../../../widgets/app_background.dart';
+import '../../../widgets/loading_button.dart';
 
 class InvoiceView extends GetView<InvoiceController> {
   @override
@@ -63,17 +64,10 @@ class InvoiceView extends GetView<InvoiceController> {
               ),
               SizedBox(height: 24),
               Obx(
-                () => SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: controller.isLoading.value
-                        ? null
-                        : controller.submitInvoice,
-                    child: controller.isLoading.value
-                        ? CircularProgressIndicator(color: Colors.white)
-                        : Text('submit'.tr),
-                  ),
+                () => LoadingButton(
+                  isLoading: controller.isLoading.value,
+                  onPressed: controller.submitInvoice,
+                  text: 'submit'.tr,
                 ),
               ),
             ],
