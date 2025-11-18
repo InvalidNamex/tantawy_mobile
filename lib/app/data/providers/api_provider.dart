@@ -68,6 +68,14 @@ class ApiProvider {
 
               logger.d('✅ Auth header added: Basic $credentials');
               logger.d('📤 Credentials: ${agent.username}:${agent.password}');
+
+              // Verify credentials are not empty
+              if (agent.username.isEmpty || agent.password.isEmpty) {
+                logger.e('⚠️ WARNING: Username or password is EMPTY!');
+                logger.e(
+                  '⚠️ Username length: ${agent.username.length}, Password length: ${agent.password.length}',
+                );
+              }
             } else {
               logger.w(
                 '❌ WARNING: Auth required but no agent found in storage!',
@@ -79,6 +87,16 @@ class ApiProvider {
           return handler.next(options);
         },
         onError: (error, handler) {
+          // Enhanced error logging for auth failures
+          if (error.response?.statusCode == 403 ||
+              error.response?.statusCode == 401) {
+            logger.e('🔐 Authentication error detected');
+            logger.e('🔐 Status: ${error.response?.statusCode}');
+            logger.e('🔐 Response: ${error.response?.data}');
+            logger.e('🔐 Request path: ${error.requestOptions.path}');
+            logger.e('🔐 Request headers: ${error.requestOptions.headers}');
+          }
+
           // Don't log connection errors at ERROR level - they're expected when offline
           if (error.type == DioExceptionType.connectionError ||
               error.type == DioExceptionType.connectionTimeout) {

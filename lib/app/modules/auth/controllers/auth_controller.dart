@@ -130,9 +130,18 @@ class AuthController extends GetxController {
 
       final agent = await _authRepository.login(username, password);
       logger.i('✅ LOGIN: Agent authenticated - ${agent.name}');
+      logger.d(
+        '🔍 LOGIN: Credentials that will be stored - Username: ${agent.username}, Password: ${agent.password}',
+      );
 
       await _storage.saveAgent(agent);
       logger.d('💾 LOGIN: Agent saved to storage');
+
+      // Verify what was actually saved
+      final savedAgent = _storage.getAgent();
+      logger.d(
+        '🔍 VERIFY: Retrieved from storage - Username: ${savedAgent?.username}, Password: ${savedAgent?.password}',
+      );
 
       // Fetch initial data - if this fails, still allow login but show warning
       try {

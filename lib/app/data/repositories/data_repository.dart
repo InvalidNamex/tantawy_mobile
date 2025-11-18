@@ -10,6 +10,7 @@ import '../models/cash_balance_model.dart';
 import '../providers/api_provider.dart';
 import '../../services/storage_service.dart';
 import '../../utils/logger.dart';
+import '../../utils/auth_session_manager.dart';
 import 'package:get/get.dart';
 
 class DataRepository {
@@ -180,11 +181,22 @@ class DataRepository {
     } catch (e, stackTrace) {
       logger.e('❌ ERROR in getAgentStock: $e');
       logger.e('❌ Stack trace: $stackTrace');
+
+      // Check if it's an authentication error
+      if (AuthSessionManager.isAuthenticationError(e)) {
+        logger.w(
+          '🔐 Authentication error in getAgentStock - agent may not have stock permissions',
+        );
+        // For stock, we return empty list instead of forcing logout since it's not critical
+        // This allows the app to continue functioning without stock data
+        return <StockModel>[];
+      }
+
       rethrow;
     }
   }
 
-  Future<CashBalanceModel> getCashBalance(
+  Future<CashBalanceModel?> getCashBalance(
     int agentId, {
     String? dateFrom,
     String? dateTo,
@@ -209,6 +221,17 @@ class DataRepository {
     } catch (e, stackTrace) {
       logger.e('❌ ERROR in getCashBalance: $e');
       logger.e('❌ Stack trace: $stackTrace');
+
+      // Check if it's an authentication error
+      if (AuthSessionManager.isAuthenticationError(e)) {
+        logger.w(
+          '🔐 Authentication error in getCashBalance - agent may not have cash balance permissions',
+        );
+        // For cash balance, we return null instead of forcing logout since it's not critical
+        // This allows the app to continue functioning without cash balance data
+        return null;
+      }
+
       rethrow;
     }
   }
@@ -223,14 +246,24 @@ class DataRepository {
     // Fetch all negative visits
     await fetchAndSaveAllVisits(agentId);
 
-    // Fetch stock data
+    // Fetch stock data (non-critical)
     try {
       final stocks = await getAgentStock(storeId);
       await _storage.saveStock(stocks);
-      logger.i('✅ Stock data synced successfully');
+      if (stocks.isNotEmpty) {
+        logger.i('✅ Stock data synced successfully (${stocks.length} items)');
+      } else {
+        logger.i(
+          'ℹ️ No stock data available or agent lacks stock access permissions',
+        );
+      }
     } catch (e) {
       logger.w('⚠️ Failed to sync stock data: $e');
-      // Non-critical, don't throw
+      // Check if it's an authentication error
+      if (AuthSessionManager.isAuthenticationError(e)) {
+        logger.i('ℹ️ Agent does not have permission to access stock data');
+      }
+      // Stock is non-critical, don't throw
     }
 
     // Fetch cash balance data for last 7 days
@@ -244,10 +277,23 @@ class DataRepository {
         dateFrom: dateFormat.format(fromDate),
         dateTo: dateFormat.format(toDate),
       );
-      await _storage.saveCashBalance(balance);
-      logger.i('✅ Cash balance synced successfully');
+
+      if (balance != null) {
+        await _storage.saveCashBalance(balance);
+        logger.i('✅ Cash balance synced successfully');
+      } else {
+        logger.i(
+          'ℹ️ Cash balance not available or agent lacks cash balance access permissions',
+        );
+      }
     } catch (e) {
       logger.w('⚠️ Failed to sync cash balance: $e');
+      // Check if it's an authentication error
+      if (AuthSessionManager.isAuthenticationError(e)) {
+        logger.i(
+          'ℹ️ Agent does not have permission to access cash balance data',
+        );
+      }
       // Non-critical, don't throw
     }
   }

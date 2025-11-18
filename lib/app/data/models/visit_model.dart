@@ -77,6 +77,7 @@ class VisitResponseModel extends HiveObject {
       id: json['id'] ?? 0,
       transType: json['transType'] ?? json['trans_type'] ?? 5,
       customerVendorName:
+          json['customer_name'] ??
           json['customerName'] ??
           json['customer_vendor_name'] ??
           json['customerVendorName'] ??

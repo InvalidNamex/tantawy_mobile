@@ -6,6 +6,8 @@ import '../../../widgets/app_background.dart';
 import '../../../widgets/loading_button.dart';
 
 class InvoiceView extends GetView<InvoiceController> {
+  const InvoiceView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,54 +15,55 @@ class InvoiceView extends GetView<InvoiceController> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          controller.invoiceType == AppConstants.invoiceTypeSales
-              ? 'sale'.tr
-              : 'return_sale'.tr,
+          '${'customer'.tr}: ${controller.customer.customerName}',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: controller.showItemSelectionDialog,
+            tooltip: 'add_items'.tr,
+          ),
+        ],
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: AppBackground(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '${'customer'.tr}: ${controller.customer.customerName}',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: controller.showItemSelectionDialog,
-                icon: Icon(Icons.add),
-                label: Text('select_items'.tr),
-              ),
-              SizedBox(height: 16),
-              Obx(
-                () => controller.selectedItems.isEmpty
-                    ? Center(child: Text('no_items_selected'.tr))
-                    : _buildItemsTable(),
-              ),
+              SizedBox(height: kToolbarHeight + 16),
+              Expanded(child: _buildItemsTable()),
               SizedBox(height: 16),
               _buildPaymentTypeDropdown(),
               SizedBox(height: 16),
               _buildStatusDropdown(),
               SizedBox(height: 16),
-              TextField(
-                controller: controller.totalPaidController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'total_paid'.tr,
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
-              Obx(
-                () => Text(
-                  '${'net_total'.tr}: ${controller.netTotal.toStringAsFixed(2)}',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: controller.totalPaidController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'total_paid'.tr,
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Obx(
+                    () => Text(
+                      '${'net_total'.tr}: ${controller.netTotal.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 24),
               Obx(
@@ -79,86 +82,89 @@ class InvoiceView extends GetView<InvoiceController> {
 
   Widget _buildItemsTable() {
     return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Obx(
-        () => DataTable(
-          columns: [
-            DataColumn(label: Text('item_name'.tr)),
-            DataColumn(label: Text('quantity'.tr)),
-            DataColumn(label: Text('price'.tr)),
-            DataColumn(label: Text('discount'.tr)),
-            DataColumn(label: Text('vat'.tr)),
-            DataColumn(label: Text('total'.tr)),
-            DataColumn(label: Text('')),
-          ],
-          rows: controller.selectedItems.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            return DataRow(
-              cells: [
-                DataCell(Text(item.item.itemName)),
-                DataCell(
-                  SizedBox(
-                    width: 60,
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) =>
-                          item.quantity.value = double.tryParse(value) ?? 1.0,
-                      decoration: InputDecoration(
-                        hintText: item.quantity.value.toString(),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Obx(
+          () => DataTable(
+            border: TableBorder.all(color: Colors.grey),
+            columns: [
+              DataColumn(label: Text('item_name'.tr)),
+              DataColumn(label: Text('quantity'.tr)),
+              DataColumn(label: Text('price'.tr)),
+              DataColumn(label: Text('discount'.tr)),
+              DataColumn(label: Text('vat'.tr)),
+              DataColumn(label: Text('total'.tr)),
+              DataColumn(label: Text('')),
+            ],
+            rows: controller.selectedItems.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              return DataRow(
+                cells: [
+                  DataCell(Text(item.item.itemName)),
+                  DataCell(
+                    SizedBox(
+                      width: 60,
+                      child: TextField(
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) =>
+                            item.quantity.value = double.tryParse(value) ?? 1.0,
+                        decoration: InputDecoration(
+                          hintText: item.quantity.value.toString(),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 80,
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) =>
-                          item.price.value = double.tryParse(value) ?? 0.0,
-                      decoration: InputDecoration(
-                        hintText: item.price.value.toString(),
+                  DataCell(
+                    SizedBox(
+                      width: 80,
+                      child: TextField(
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) =>
+                            item.price.value = double.tryParse(value) ?? 0.0,
+                        decoration: InputDecoration(
+                          hintText: item.price.value.toString(),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 60,
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) =>
-                          item.discount.value = double.tryParse(value) ?? 0.0,
-                      decoration: InputDecoration(
-                        hintText: item.discount.value.toString(),
+                  DataCell(
+                    SizedBox(
+                      width: 60,
+                      child: TextField(
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) =>
+                            item.discount.value = double.tryParse(value) ?? 0.0,
+                        decoration: InputDecoration(
+                          hintText: item.discount.value.toString(),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 60,
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) =>
-                          item.vat.value = double.tryParse(value) ?? 0.0,
-                      decoration: InputDecoration(
-                        hintText: item.vat.value.toString(),
+                  DataCell(
+                    SizedBox(
+                      width: 60,
+                      child: TextField(
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) =>
+                            item.vat.value = double.tryParse(value) ?? 0.0,
+                        decoration: InputDecoration(
+                          hintText: item.vat.value.toString(),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                DataCell(Obx(() => Text(item.total.toStringAsFixed(2)))),
-                DataCell(
-                  IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => controller.removeItem(index),
+                  DataCell(Obx(() => Text(item.total.toStringAsFixed(2)))),
+                  DataCell(
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => controller.removeItem(index),
+                    ),
                   ),
-                ),
-              ],
-            );
-          }).toList(),
+                ],
+              );
+            }).toList(),
+          ),
         ),
       ),
     );

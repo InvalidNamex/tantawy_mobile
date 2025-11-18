@@ -17,6 +17,7 @@ class AppTranslations extends Translations {
       'orders': 'الطلبات',
       'negative_visits': 'الزيارات السلبية',
       'sales': 'المبيعات',
+      'view_location': 'عرض الموقع',
       'return_sales': 'مرتجع المبيعات',
       'receive_vouchers': 'سندات القبض',
       'receive_voucher': 'سند قبض',
@@ -82,6 +83,9 @@ class AppTranslations extends Translations {
       'logout_confirmation': 'هل أنت متأكد أنك تريد تسجيل الخروج؟',
       'please_fill_all_fields': 'الرجاء ملء جميع الحقول',
       'session_expired': 'انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.',
+      'authentication_failed': 'فشل المصادقة',
+      'your_session_expired_login_again':
+          'انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى.',
       'rate_limited': 'محدودية الطلبات',
       'rate_limited_message': 'طلبات كثيرة جداً. استخدام البيانات المحفوظة.',
       'login_sync_failed':
@@ -144,6 +148,32 @@ class AppTranslations extends Translations {
       'total_debit': 'إجمالي المدين',
       'total_credit': 'إجمالي الدائن',
       'balance': 'الرصيد',
+      'no_pending_data_to_sync': 'لا توجد بيانات معلقة للمزامنة',
+      'sync_items_failed':
+          'فشلت بعض العناصر في المزامنة وسيتم إعادة المحاولة لاحقاً:',
+      'synced_items': 'تمت المزامنة: {0} فواتير، {1} سندات، {2} زيارات',
+      'data_refreshed': 'تم تحديث البيانات بنجاح',
+      'failed_to_refresh': 'فشل التحديث',
+      'no_agent_found': 'لم يتم العثور على مندوب',
+      'failed_to_fetch_cash_balance': 'فشل جلب الرصيد النقدي',
+      'visit_recorded_successfully': 'تم تسجيل الزيارة بنجاح',
+      'visit_saved_for_sync': 'تم حفظ الزيارة للمزامنة',
+      'location_permission_required': 'إذن الموقع مطلوب',
+
+      // Server error messages
+      'server_error_offline_saved':
+          'حدث خطأ في الخادم. تم حفظ {0} محلياً وسيتم رفعه عند استعادة الخدمة.',
+      'server_internal_error': 'خطأ داخلي في الخادم',
+      'server_bad_gateway': 'خطأ في بوابة الخادم',
+      'server_unavailable': 'الخادم غير متاح حالياً',
+      'server_timeout': 'انتهت مهلة الخادم',
+      'server_error_generic': 'حدث خطأ في الخادم',
+      'server_error_title': 'خطأ في الخادم',
+      'data_saved_offline': 'تم حفظ البيانات محلياً',
+      'will_sync_when_server_available': 'سيتم رفع البيانات عند استعادة الخدمة',
+      'session_expired_please_login':
+          'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.',
+      'login_again': 'تسجيل الدخول مرة أخرى',
     },
     'en': {
       'app_name': 'Tantawy',
@@ -159,6 +189,7 @@ class AppTranslations extends Translations {
       'orders': 'Orders',
       'negative_visits': 'Negative Visits',
       'sales': 'Sales',
+      'view_location': 'View Location',
       'return_sales': 'Return Sales',
       'receive_vouchers': 'Receive Vouchers',
       'payment_vouchers': 'Payment Vouchers',
@@ -222,6 +253,9 @@ class AppTranslations extends Translations {
       'logout_confirmation': 'Are you sure you want to logout?',
       'please_fill_all_fields': 'Please fill all fields',
       'session_expired': 'Session expired. Please login again.',
+      'authentication_failed': 'Authentication Failed',
+      'your_session_expired_login_again':
+          'Your session has expired. Please login again.',
       'rate_limited': 'Rate Limited',
       'rate_limited_message': 'Too many requests. Using cached data.',
       'login_sync_failed':
@@ -286,6 +320,32 @@ class AppTranslations extends Translations {
       'total_debit': 'Total Debit',
       'total_credit': 'Total Credit',
       'balance': 'Balance',
+      'no_pending_data_to_sync': 'No pending data to sync',
+      'sync_items_failed':
+          'Some items failed to sync and will be retried later:',
+      'synced_items': 'Synced: {0} invoices, {1} vouchers, {2} visits',
+      'data_refreshed': 'Data refreshed successfully',
+      'failed_to_refresh': 'Failed to refresh',
+      'no_agent_found': 'No agent found',
+      'failed_to_fetch_cash_balance': 'Failed to fetch cash balance',
+      'visit_recorded_successfully': 'Visit recorded successfully',
+      'visit_saved_for_sync': 'Visit saved for sync',
+      'location_permission_required': 'Location permission required',
+
+      // Server error messages
+      'server_error_offline_saved':
+          'Server error occurred. {0} saved offline and will be uploaded when service is restored.',
+      'server_internal_error': 'Internal server error',
+      'server_bad_gateway': 'Server gateway error',
+      'server_unavailable': 'Server is currently unavailable',
+      'server_timeout': 'Server timeout',
+      'server_error_generic': 'Server error occurred',
+      'server_error_title': 'Server Error',
+      'data_saved_offline': 'Data saved offline',
+      'will_sync_when_server_available':
+          'Data will be uploaded when service is restored',
+      'session_expired_please_login': 'Session expired. Please login again.',
+      'login_again': 'Login Again',
     },
   };
 }

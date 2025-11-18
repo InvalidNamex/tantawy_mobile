@@ -9,6 +9,9 @@ import '../../../services/location_service.dart';
 import '../../../data/providers/api_provider.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/logger.dart';
+import '../../../utils/api_error_handler.dart';
+import '../../../utils/server_error_dialog.dart';
+import '../../../utils/auth_session_manager.dart';
 
 class InvoiceItemRow {
   final ItemModel item;
@@ -176,10 +179,12 @@ class InvoiceController extends GetxController {
       logger.i('Submitting invoice for customer: ${customer.customerName}');
 
       if (hasConnection) {
+        // Try to submit online
         await _apiProvider.batchCreateInvoices([invoice.toJson()]);
         logger.i('Invoice created successfully online');
         Get.snackbar('success'.tr, 'invoice_created'.tr);
       } else {
+        // No internet - save offline
         await _storage.addPendingInvoice(invoice.toJson());
         logger.i('Invoice saved offline for sync');
         Get.snackbar('offline_mode'.tr, 'invoice_saved_sync'.tr);
@@ -188,6 +193,35 @@ class InvoiceController extends GetxController {
       Get.back();
     } catch (e, stackTrace) {
       logger.e('Failed to submit invoice', error: e, stackTrace: stackTrace);
+
+      // Check for authentication errors
+      if (AuthSessionManager.isAuthenticationError(e)) {
+        logger.w('❌ Authentication failed - using AuthSessionManager');
+        await AuthSessionManager.handleAuthenticationFailure();
+        return;
+      }
+
+      // Check if it's a server error with internet connection
+      if (hasConnection && ApiErrorHandler.isServerErrorWithInternet(e)) {
+        logger.w('🔄 Server error with internet - saving invoice offline');
+
+        // Save the invoice offline
+        await _storage.addPendingInvoice(invoice.toJson());
+
+        // Show server error dialog
+        ServerErrorDialog.showServerErrorSavedOffline(
+          dataType: 'invoice',
+          error: e,
+        );
+
+        // Close the invoice screen after a brief delay
+        Future.delayed(Duration(milliseconds: 1500), () {
+          Get.back();
+        });
+        return;
+      }
+
+      // For other errors, show generic error message
       Get.snackbar('error'.tr, e.toString());
     } finally {
       isLoading.value = false;

@@ -9,6 +9,9 @@ import '../../../services/location_service.dart';
 import '../../../data/providers/api_provider.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/logger.dart';
+import '../../../utils/api_error_handler.dart';
+import '../../../utils/server_error_dialog.dart';
+import '../../../utils/auth_session_manager.dart';
 
 class VoucherController extends GetxController {
   final StorageService _storage = Get.find<StorageService>();
@@ -102,6 +105,35 @@ class VoucherController extends GetxController {
       Get.back();
     } catch (e, stackTrace) {
       logger.e('Failed to submit voucher', error: e, stackTrace: stackTrace);
+
+      // Check for authentication errors
+      if (AuthSessionManager.isAuthenticationError(e)) {
+        logger.w('❌ Authentication failed - using AuthSessionManager');
+        await AuthSessionManager.handleAuthenticationFailure();
+        return;
+      }
+
+      // Check if it's a server error with internet connection
+      if (hasConnection && ApiErrorHandler.isServerErrorWithInternet(e)) {
+        logger.w('🔄 Server error with internet - saving voucher offline');
+
+        // Save the voucher offline
+        await _storage.addPendingVoucher(voucher.toJson());
+
+        // Show server error dialog
+        ServerErrorDialog.showServerErrorSavedOffline(
+          dataType: 'voucher',
+          error: e,
+        );
+
+        // Close the voucher screen after a brief delay
+        Future.delayed(Duration(milliseconds: 1500), () {
+          Get.back();
+        });
+        return;
+      }
+
+      // For other errors, show generic error message
       Get.snackbar('error'.tr, e.toString());
     } finally {
       isLoading.value = false;
