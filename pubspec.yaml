@@ -23,6 +23,7 @@ dependencies:
   logger: ^2.5.0
   curved_navigation_bar: ^1.0.6
   url_launcher: ^6.3.1
+  dropdown_search: ^6.0.2
   
 dev_dependencies:
   flutter_test:

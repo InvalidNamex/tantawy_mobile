@@ -17,22 +17,17 @@ class InvoiceItemRow {
   final ItemModel item;
   final RxDouble quantity;
   final RxDouble price;
-  final RxDouble discount;
-  final RxDouble vat;
+  final double priceListPrice; // Store the original price list price
 
   InvoiceItemRow({
     required this.item,
     double quantity = 1.0,
     required double price,
-    double discount = 0.0,
-    double vat = 0.0,
+    required this.priceListPrice,
   }) : quantity = quantity.obs,
-       price = price.obs,
-       discount = discount.obs,
-       vat = vat.obs;
+       price = price.obs;
 
-  double get total =>
-      (quantity.value * price.value) - discount.value + vat.value;
+  double get total => quantity.value * price.value;
 }
 
 class InvoiceController extends GetxController {
@@ -49,6 +44,8 @@ class InvoiceController extends GetxController {
   final RxInt paymentType = AppConstants.paymentTypeCash.obs;
   final RxInt status = AppConstants.statusPaid.obs;
   final totalPaidController = TextEditingController();
+  final discountAmountController = TextEditingController(text: '0');
+  final RxBool isTaxInvoice = false.obs;
   final RxBool isLoading = false.obs;
 
   @override
@@ -57,86 +54,137 @@ class InvoiceController extends GetxController {
     customer = Get.arguments['customer'];
     invoiceType = Get.arguments['invoiceType'];
     availableItems.value = _storage.getItems();
+
+    // Listen to status changes
+    ever(status, (_) => _handleStatusChange());
+
+    // Listen to payment type changes
+    ever(paymentType, (_) => _handlePaymentTypeChange());
+
+    // Listen to discount changes
+    discountAmountController.addListener(_updateNetTotal);
+
+    // Listen to tax invoice changes
+    ever(isTaxInvoice, (_) => _updateNetTotal());
   }
 
-  double get netTotal =>
+  double get subtotal =>
       selectedItems.fold(0.0, (sum, item) => sum + item.total);
 
-  void showItemSelectionDialog() {
-    Get.dialog(
-      Dialog(
-        child: Container(
-          height: Get.height * 0.7,
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  'select_items'.tr,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: availableItems.length,
-                  itemBuilder: (context, index) {
-                    final item = availableItems[index];
-                    return CheckboxListTile(
-                      title: Text(item.itemName),
-                      subtitle: Text('${item.barcode} - ${item.sign}'),
-                      value: selectedItems.any((i) => i.item.id == item.id),
-                      onChanged: (selected) {
-                        if (selected == true) {
-                          _addItem(item);
-                        } else {
-                          selectedItems.removeWhere(
-                            (i) => i.item.id == item.id,
-                          );
-                        }
-                      },
-                    );
-                  },
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: ElevatedButton(
-                  onPressed: () => Get.back(),
-                  child: Text('add_items'.tr),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  double get discountAmount {
+    return double.tryParse(discountAmountController.text) ?? 0.0;
   }
 
-  void _addItem(ItemModel item) {
+  double get taxAmount {
+    return isTaxInvoice.value ? (subtotal - discountAmount) * 0.14 : 0.0;
+  }
+
+  double get netTotal => subtotal - discountAmount + taxAmount;
+
+  void _updateNetTotal() {
+    // Trigger rebuild by adding and removing a dummy item or using update
+    selectedItems.value = List.from(selectedItems);
+  }
+
+  void _handleStatusChange() {
+    if (status.value == AppConstants.statusPaid) {
+      totalPaidController.text = netTotal.toStringAsFixed(2);
+    } else if (status.value == AppConstants.statusUnpaid) {
+      totalPaidController.text = '0';
+    }
+  }
+
+  void _handlePaymentTypeChange() {
+    if (paymentType.value == AppConstants.paymentTypeDeferred) {
+      status.value = AppConstants.statusUnpaid;
+      totalPaidController.text = '0';
+    }
+  }
+
+  bool get isTotalPaidEnabled {
+    // Disable if status is paid, unpaid, or payment type is deferred
+    return status.value != AppConstants.statusPaid &&
+        status.value != AppConstants.statusUnpaid &&
+        paymentType.value != AppConstants.paymentTypeDeferred;
+  }
+
+  void addItem(ItemModel item) {
+    // Check if item already exists
+    final existingItemIndex = selectedItems.indexWhere(
+      (i) => i.item.id == item.id,
+    );
+    if (existingItemIndex != -1) {
+      // Item already exists, increase quantity by 1
+      selectedItems[existingItemIndex].quantity.value += 1;
+      return;
+    }
+
     double defaultPrice = 0.0;
 
     // Only get price list details if customer has a price list
     if (customer.priceList != null) {
+      print('🔍 Customer has pricelist: ${customer.priceList!.id}');
       final priceListDetails = _storage.getPriceListDetails(
         customer.priceList!.id,
       );
+      print('📋 Pricelist details count: ${priceListDetails.length}');
       final priceDetail = priceListDetails.firstWhereOrNull(
         (p) => p.item.id == item.id,
       );
       defaultPrice = priceDetail?.price ?? 0.0;
+      print(
+        '💰 Item: ${item.itemName} (ID: ${item.id}) - Price: $defaultPrice',
+      );
+    } else {
+      print('❌ Customer has NO pricelist');
     }
 
-    selectedItems.add(InvoiceItemRow(item: item, price: defaultPrice));
+    selectedItems.add(
+      InvoiceItemRow(
+        item: item,
+        price: defaultPrice,
+        priceListPrice: defaultPrice,
+      ),
+    );
+    print('✅ Added item to table with price: $defaultPrice');
   }
 
   void removeItem(int index) {
     selectedItems.removeAt(index);
   }
 
+  bool validatePrice(InvoiceItemRow item, double newPrice) {
+    if (newPrice < item.priceListPrice) {
+      Get.snackbar('error'.tr, 'price_cannot_be_lower_than_pricelist'.tr);
+      return false;
+    }
+    return true;
+  }
+
+  void showItemSelectionDialog() {
+    // This will be called from the view
+    // The view will handle the dropdown_search widget
+  }
+
   Future<void> submitInvoice() async {
     if (selectedItems.isEmpty) {
       Get.snackbar('error'.tr, 'please_add_items'.tr);
       return;
+    }
+
+    // Validate discount amount
+    if (discountAmount > subtotal) {
+      Get.snackbar('error'.tr, 'discount_cannot_exceed_subtotal'.tr);
+      return;
+    }
+
+    // Validate partially paid status
+    if (status.value == AppConstants.statusPartiallyPaid) {
+      final totalPaid = double.tryParse(totalPaidController.text) ?? 0.0;
+      if (totalPaid <= 0) {
+        Get.snackbar('error'.tr, 'partially_paid_must_have_amount'.tr);
+        return;
+      }
     }
 
     // Check location permission before proceeding
@@ -158,6 +206,8 @@ class InvoiceController extends GetxController {
         paymentType: paymentType.value,
         netTotal: netTotal,
         totalPaid: double.tryParse(totalPaidController.text) ?? 0.0,
+        discountAmount: discountAmount > 0 ? discountAmount : null,
+        taxAmount: taxAmount > 0 ? taxAmount : null,
       ),
       invoiceDetails: selectedItems
           .map(
@@ -165,8 +215,6 @@ class InvoiceController extends GetxController {
               item: item.item.id,
               quantity: item.quantity.value,
               price: item.price.value,
-              discount: item.discount.value,
-              vat: item.vat.value,
             ),
           )
           .toList(),
@@ -231,6 +279,7 @@ class InvoiceController extends GetxController {
   @override
   void onClose() {
     totalPaidController.dispose();
+    discountAmountController.dispose();
     super.onClose();
   }
 }

@@ -24,6 +24,8 @@ class InvoiceMaster {
   final int paymentType;
   final double netTotal;
   final double totalPaid;
+  final double? discountAmount;
+  final double? taxAmount;
 
   InvoiceMaster({
     required this.invoiceType,
@@ -34,18 +36,25 @@ class InvoiceMaster {
     required this.paymentType,
     required this.netTotal,
     required this.totalPaid,
+    this.discountAmount,
+    this.taxAmount,
   });
 
-  Map<String, dynamic> toJson() => {
-    'invoiceType': invoiceType,
-    'customerOrVendorID': customerOrVendorID,
-    'storeId': storeId,
-    'agentID': agentID,
-    'status': status,
-    'paymentType': paymentType,
-    'netTotal': netTotal,
-    'totalPaid': totalPaid,
-  };
+  Map<String, dynamic> toJson() {
+    final json = {
+      'invoiceType': invoiceType,
+      'customerOrVendorID': customerOrVendorID,
+      'storeId': storeId,
+      'agentID': agentID,
+      'status': status,
+      'paymentType': paymentType,
+      'netTotal': netTotal,
+      'totalPaid': totalPaid,
+    };
+    if (discountAmount != null) json['discountAmount'] = discountAmount!;
+    if (taxAmount != null) json['taxAmount'] = taxAmount!;
+    return json;
+  }
 }
 
 class InvoiceDetail {

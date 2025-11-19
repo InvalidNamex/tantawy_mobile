@@ -159,6 +159,21 @@ class AppTranslations extends Translations {
       'visit_recorded_successfully': 'تم تسجيل الزيارة بنجاح',
       'visit_saved_for_sync': 'تم حفظ الزيارة للمزامنة',
       'location_permission_required': 'إذن الموقع مطلوب',
+      'search_items': 'البحث عن الأصناف',
+      'type_to_search': 'اكتب للبحث',
+      'close': 'إغلاق',
+      'discount_percentage': 'نسبة الخصم',
+      'discount_amount': 'قيمة الخصم',
+      'subtotal': 'المجموع الفرعي',
+      'tax_invoice': 'فاتورة ضريبية',
+      'vat_14_percent': 'ضريبة القيمة المضافة 14%',
+      'item_already_added': 'الصنف مضاف بالفعل',
+      'price_cannot_be_lower_than_pricelist':
+          'لا يمكن أن يكون السعر أقل من سعر القائمة',
+      'partially_paid_must_have_amount':
+          'يجب أن يحتوي المدفوع جزئياً على مبلغ أكبر من الصفر',
+      'discount_cannot_exceed_subtotal':
+          'لا يمكن أن يكون الخصم أكبر من المجموع الفرعي',
 
       // Server error messages
       'server_error_offline_saved':
@@ -331,6 +346,20 @@ class AppTranslations extends Translations {
       'visit_recorded_successfully': 'Visit recorded successfully',
       'visit_saved_for_sync': 'Visit saved for sync',
       'location_permission_required': 'Location permission required',
+      'search_items': 'Search Items',
+      'type_to_search': 'Type to search',
+      'close': 'Close',
+      'discount_percentage': 'Discount Percentage',
+      'discount_amount': 'Discount Amount',
+      'subtotal': 'Subtotal',
+      'tax_invoice': 'Tax Invoice',
+      'vat_14_percent': '14% VAT',
+      'item_already_added': 'Item already added',
+      'price_cannot_be_lower_than_pricelist':
+          'Price cannot be lower than pricelist price',
+      'partially_paid_must_have_amount':
+          'Partially paid must have an amount greater than zero',
+      'discount_cannot_exceed_subtotal': 'Discount cannot exceed subtotal',
 
       // Server error messages
       'server_error_offline_saved':

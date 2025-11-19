@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import '../controllers/invoice_controller.dart';
 import '../../../utils/constants.dart';
 import '../../../widgets/app_background.dart';
 import '../../../widgets/loading_button.dart';
+import '../../../data/models/item_model.dart';
 
 class InvoiceView extends GetView<InvoiceController> {
   const InvoiceView({super.key});
@@ -21,7 +23,7 @@ class InvoiceView extends GetView<InvoiceController> {
         actions: [
           IconButton(
             icon: Icon(Icons.add),
-            onPressed: controller.showItemSelectionDialog,
+            onPressed: () => _showItemSearchDialog(context),
             tooltip: 'add_items'.tr,
           ),
         ],
@@ -37,6 +39,13 @@ class InvoiceView extends GetView<InvoiceController> {
               SizedBox(height: kToolbarHeight + 16),
               Expanded(child: _buildItemsTable()),
               SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(child: _buildTaxInvoiceCheckbox()),
+                  Expanded(child: _buildDiscountField()),
+                ],
+              ),
+              SizedBox(height: 16),
               _buildPaymentTypeDropdown(),
               SizedBox(height: 16),
               _buildStatusDropdown(),
@@ -44,12 +53,15 @@ class InvoiceView extends GetView<InvoiceController> {
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: controller.totalPaidController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'total_paid'.tr,
-                        border: OutlineInputBorder(),
+                    child: Obx(
+                      () => TextField(
+                        controller: controller.totalPaidController,
+                        keyboardType: TextInputType.number,
+                        enabled: controller.isTotalPaidEnabled,
+                        decoration: InputDecoration(
+                          labelText: 'total_paid'.tr,
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
                   ),
@@ -80,6 +92,61 @@ class InvoiceView extends GetView<InvoiceController> {
     );
   }
 
+  void _showItemSearchDialog(BuildContext context) {
+    Get.dialog(
+      Dialog(
+        child: Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'select_items'.tr,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              DropdownSearch<ItemModel>(
+                items: (filter, infiniteScrollProps) =>
+                    controller.availableItems,
+                itemAsString: (ItemModel item) =>
+                    '${item.itemName} - ${item.barcode}',
+                compareFn: (item1, item2) => item1.id == item2.id,
+                decoratorProps: DropDownDecoratorProps(
+                  decoration: InputDecoration(
+                    labelText: 'search_items'.tr,
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                ),
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                  searchFieldProps: TextFieldProps(
+                    decoration: InputDecoration(
+                      hintText: 'type_to_search'.tr,
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                  ),
+                  itemBuilder: (context, item, isDisabled, isSelected) {
+                    return ListTile(
+                      title: Text(item.itemName),
+                      subtitle: Text('${item.barcode} - ${item.sign}'),
+                    );
+                  },
+                ),
+                onChanged: (ItemModel? item) {
+                  if (item != null) {
+                    controller.addItem(item);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+    );
+  }
+
   Widget _buildItemsTable() {
     return SingleChildScrollView(
       child: SingleChildScrollView(
@@ -91,8 +158,6 @@ class InvoiceView extends GetView<InvoiceController> {
               DataColumn(label: Text('item_name'.tr)),
               DataColumn(label: Text('quantity'.tr)),
               DataColumn(label: Text('price'.tr)),
-              DataColumn(label: Text('discount'.tr)),
-              DataColumn(label: Text('vat'.tr)),
               DataColumn(label: Text('total'.tr)),
               DataColumn(label: Text('')),
             ],
@@ -107,10 +172,19 @@ class InvoiceView extends GetView<InvoiceController> {
                       width: 60,
                       child: TextField(
                         keyboardType: TextInputType.number,
-                        onChanged: (value) =>
-                            item.quantity.value = double.tryParse(value) ?? 1.0,
+                        controller: TextEditingController(
+                          text: item.quantity.value.toString(),
+                        ),
+                        onChanged: (value) {
+                          item.quantity.value = double.tryParse(value) ?? 1.0;
+                        },
                         decoration: InputDecoration(
-                          hintText: item.quantity.value.toString(),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+
+                          filled: true,
+                          fillColor: Colors.transparent,
                         ),
                       ),
                     ),
@@ -118,47 +192,45 @@ class InvoiceView extends GetView<InvoiceController> {
                   DataCell(
                     SizedBox(
                       width: 80,
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) =>
-                            item.price.value = double.tryParse(value) ?? 0.0,
-                        decoration: InputDecoration(
-                          hintText: item.price.value.toString(),
-                        ),
-                      ),
-                    ),
-                  ),
-                  DataCell(
-                    SizedBox(
-                      width: 60,
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) =>
-                            item.discount.value = double.tryParse(value) ?? 0.0,
-                        decoration: InputDecoration(
-                          hintText: item.discount.value.toString(),
-                        ),
-                      ),
-                    ),
-                  ),
-                  DataCell(
-                    SizedBox(
-                      width: 60,
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) =>
-                            item.vat.value = double.tryParse(value) ?? 0.0,
-                        decoration: InputDecoration(
-                          hintText: item.vat.value.toString(),
+                      child: Obx(
+                        () => TextField(
+                          keyboardType: TextInputType.number,
+                          controller:
+                              TextEditingController(
+                                  text: item.price.value.toStringAsFixed(2),
+                                )
+                                ..selection = TextSelection.fromPosition(
+                                  TextPosition(
+                                    offset: item.price.value
+                                        .toStringAsFixed(2)
+                                        .length,
+                                  ),
+                                ),
+                          onChanged: (value) {
+                            final newPrice = double.tryParse(value) ?? 0.0;
+                            if (controller.validatePrice(item, newPrice)) {
+                              item.price.value = newPrice;
+                            }
+                          },
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            filled: true,
+                            fillColor: Colors.transparent,
+                          ),
                         ),
                       ),
                     ),
                   ),
                   DataCell(Obx(() => Text(item.total.toStringAsFixed(2)))),
                   DataCell(
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => controller.removeItem(index),
+                    SizedBox(
+                      width: 20,
+                      child: IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => controller.removeItem(index),
+                      ),
                     ),
                   ),
                 ],
@@ -166,6 +238,36 @@ class InvoiceView extends GetView<InvoiceController> {
             }).toList(),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDiscountField() {
+    return TextField(
+      controller: controller.discountAmountController,
+      keyboardType: TextInputType.number,
+      onChanged: (value) {
+        final discountValue = double.tryParse(value) ?? 0.0;
+        if (discountValue > controller.subtotal) {
+          Get.snackbar('error'.tr, 'discount_cannot_exceed_subtotal'.tr);
+          controller.discountAmountController.text = controller.subtotal
+              .toStringAsFixed(2);
+        }
+      },
+      decoration: InputDecoration(
+        labelText: 'discount_amount'.tr,
+        border: OutlineInputBorder(),
+      ),
+    );
+  }
+
+  Widget _buildTaxInvoiceCheckbox() {
+    return Obx(
+      () => CheckboxListTile(
+        title: Text('tax_invoice'.tr),
+        value: controller.isTaxInvoice.value,
+        onChanged: (value) => controller.isTaxInvoice.value = value ?? false,
+        controlAffinity: ListTileControlAffinity.leading,
       ),
     );
   }
