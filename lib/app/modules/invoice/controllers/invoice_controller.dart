@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 import '../../../data/models/customer_model.dart';
 import '../../../data/models/item_model.dart';
 import '../../../data/models/invoice_model.dart';
+import '../../../data/models/invoice_detail_model.dart';
 import '../../../services/storage_service.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../services/location_service.dart';
+import '../../../services/print_invoice_service.dart';
 import '../../../data/providers/api_provider.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/logger.dart';
@@ -214,23 +216,70 @@ class InvoiceController extends GetxController {
 
     final hasConnection = await _connectivity.checkConnection();
 
+    InvoiceResponseModel? createdInvoice;
+
     try {
       isLoading.value = true;
       logger.i('Submitting invoice for customer: ${customer.customerName}');
 
       if (hasConnection) {
         // Try to submit online
-        await _apiProvider.batchCreateInvoices([invoice.toJson()]);
+        final response = await _apiProvider.batchCreateInvoices([invoice.toJson()]);
         logger.i('Invoice created successfully online');
+        
+        // Parse the response to get the created invoice
+        if (response.data != null && response.data is List && (response.data as List).isNotEmpty) {
+          createdInvoice = InvoiceResponseModel.fromJson(response.data[0]);
+        }
+        
         Get.snackbar('success'.tr, 'invoice_created'.tr);
       } else {
-        // No internet - save offline
+        // No internet - save offline and create a temporary invoice for printing
         await _storage.addPendingInvoice(invoice.toJson());
         logger.i('Invoice saved offline for sync');
+        
+        // Create a temporary InvoiceResponseModel for offline printing
+        createdInvoice = InvoiceResponseModel(
+          id: DateTime.now().millisecondsSinceEpoch, // Temporary ID
+          invoiceType: invoiceType,
+          invoiceNumber: null,
+          customerVendorName: customer.customerName,
+          customerVendorId: customer.id,
+          paymentType: paymentType.value,
+          status: status.value,
+          netTotal: netTotal,
+          totalPaid: double.tryParse(totalPaidController.text) ?? 0.0,
+          invoiceDate: DateTime.now(),
+          storeId: agent.storeID,
+          agentId: agent.id,
+          storeName: null,
+          discountAmount: discountAmount,
+          taxAmount: taxAmount,
+          notes: null,
+          invoiceDetails: selectedItems.map((item) {
+            return InvoiceDetailResponse(
+              itemID: item.item.id,
+              itemName: item.item.itemName,
+              itemQuantity: item.quantity.value,
+            );
+          }).toList(),
+        );
+        
         Get.snackbar('offline_mode'.tr, 'invoice_saved_sync'.tr);
       }
 
-      Get.back();
+      // Show print dialog after closing loading, before disposing controller
+      isLoading.value = false;
+      
+      if (createdInvoice != null) {
+        // Use Future.delayed to show dialog after current frame
+        Future.delayed(Duration.zero, () {
+          _showPrintDialog(createdInvoice!);
+        });
+        return; // Prevent automatic Get.back()
+      } else {
+        Get.back();
+      }
     } catch (e, stackTrace) {
       logger.e('Failed to submit invoice', error: e, stackTrace: stackTrace);
 
@@ -238,6 +287,7 @@ class InvoiceController extends GetxController {
       if (AuthSessionManager.isAuthenticationError(e)) {
         logger.w('❌ Authentication failed - using AuthSessionManager');
         await AuthSessionManager.handleAuthenticationFailure();
+        isLoading.value = false;
         return;
       }
 
@@ -255,6 +305,7 @@ class InvoiceController extends GetxController {
         );
 
         // Close the invoice screen after a brief delay
+        isLoading.value = false;
         Future.delayed(Duration(milliseconds: 1500), () {
           Get.back();
         });
@@ -262,9 +313,8 @@ class InvoiceController extends GetxController {
       }
 
       // For other errors, show generic error message
-      Get.snackbar('error'.tr, e.toString());
-    } finally {
       isLoading.value = false;
+      Get.snackbar('error'.tr, e.toString());
     }
   }
 
@@ -273,5 +323,67 @@ class InvoiceController extends GetxController {
     totalPaidController.dispose();
     discountAmountController.dispose();
     super.onClose();
+  }
+
+  void _showPrintDialog(InvoiceResponseModel invoice) {
+    logger.d('📋 Showing print dialog for invoice ${invoice.id}');
+    
+    Get.dialog(
+      WillPopScope(
+        onWillPop: () async => false, // Prevent back button from dismissing
+        child: AlertDialog(
+          title: Text('print'.tr),
+          content: Text('do_you_want_to_print_invoice'.tr),
+          actions: [
+            TextButton(
+              onPressed: () {
+                logger.d('❌ User cancelled print');
+                Get.back(); // Close dialog
+                Get.back(); // Close invoice screen
+              },
+              child: Text('cancel'.tr),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                logger.d('🖨️ User confirmed print');
+                Get.back(); // Close dialog
+                try {
+                  // Convert invoice details to InvoiceDetailModel for printing
+                  List<InvoiceDetailModel> details = [];
+                  if (invoice.invoiceDetails != null && invoice.invoiceDetails!.isNotEmpty) {
+                    details = invoice.invoiceDetails!.map((detail) {
+                      double itemTotal = invoice.netTotal / invoice.invoiceDetails!.length;
+                      return InvoiceDetailModel(
+                        itemName: detail.itemName,
+                        quantity: detail.itemQuantity,
+                        price: 0.0,
+                        discount: 0.0,
+                        vat: 0.0,
+                        total: itemTotal,
+                      );
+                    }).toList();
+                  }
+
+                  await PrintInvoiceService.printInvoice(
+                    invoice: invoice,
+                    invoiceDetails: details,
+                    agentName: null,
+                  );
+                  
+                  logger.d('✅ Print completed successfully');
+                  Get.back(); // Close invoice screen after printing
+                } catch (e) {
+                  logger.e('❌ Error printing invoice: $e');
+                  Get.snackbar('error'.tr, 'print_error'.tr);
+                  Get.back(); // Close invoice screen even if print fails
+                }
+              },
+              child: Text('print'.tr),
+            ),
+          ],
+        ),
+      ),
+      barrierDismissible: false,
+    );
   }
 }

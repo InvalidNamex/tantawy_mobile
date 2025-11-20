@@ -84,7 +84,7 @@ class InvoiceView extends GetView<InvoiceController> {
                 () => LoadingButton(
                   isLoading: controller.isLoading.value,
                   onPressed: controller.submitInvoice,
-                  text: 'submit'.tr,
+                  text: 'save_and_print'.tr,
                 ),
               ),
             ],
