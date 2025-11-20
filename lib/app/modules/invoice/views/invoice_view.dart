@@ -39,12 +39,14 @@ class InvoiceView extends GetView<InvoiceController> {
               SizedBox(height: kToolbarHeight + 16),
               Expanded(child: _buildItemsTable()),
               SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(child: _buildTaxInvoiceCheckbox()),
-                  Expanded(child: _buildDiscountField()),
-                ],
-              ),
+              controller.invoiceType != AppConstants.invoiceTypeReturnSales
+                  ? Row(
+                      children: [
+                        Expanded(child: _buildTaxInvoiceCheckbox()),
+                        Expanded(child: _buildDiscountField()),
+                      ],
+                    )
+                  : SizedBox(),
               SizedBox(height: 16),
               _buildPaymentTypeDropdown(),
               SizedBox(height: 16),

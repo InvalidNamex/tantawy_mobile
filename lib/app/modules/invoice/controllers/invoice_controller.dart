@@ -123,20 +123,13 @@ class InvoiceController extends GetxController {
 
     // Only get price list details if customer has a price list
     if (customer.priceList != null) {
-      print('🔍 Customer has pricelist: ${customer.priceList!.id}');
       final priceListDetails = _storage.getPriceListDetails(
         customer.priceList!.id,
       );
-      print('📋 Pricelist details count: ${priceListDetails.length}');
       final priceDetail = priceListDetails.firstWhereOrNull(
         (p) => p.item.id == item.id,
       );
       defaultPrice = priceDetail?.price ?? 0.0;
-      print(
-        '💰 Item: ${item.itemName} (ID: ${item.id}) - Price: $defaultPrice',
-      );
-    } else {
-      print('❌ Customer has NO pricelist');
     }
 
     selectedItems.add(
@@ -146,7 +139,6 @@ class InvoiceController extends GetxController {
         priceListPrice: defaultPrice,
       ),
     );
-    print('✅ Added item to table with price: $defaultPrice');
   }
 
   void removeItem(int index) {

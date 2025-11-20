@@ -119,6 +119,21 @@ class InvoiceResponseModel extends HiveObject {
   @HiveField(11)
   final int agentId;
 
+  @HiveField(12)
+  final String? storeName;
+
+  @HiveField(13)
+  final double discountAmount;
+
+  @HiveField(14)
+  final double taxAmount;
+
+  @HiveField(15)
+  final String? notes;
+
+  @HiveField(16)
+  final List<InvoiceDetailResponse>? invoiceDetails;
+
   InvoiceResponseModel({
     required this.id,
     required this.invoiceType,
@@ -132,9 +147,21 @@ class InvoiceResponseModel extends HiveObject {
     required this.invoiceDate,
     required this.storeId,
     required this.agentId,
+    this.storeName,
+    this.discountAmount = 0.0,
+    this.taxAmount = 0.0,
+    this.notes,
+    this.invoiceDetails,
   });
 
   factory InvoiceResponseModel.fromJson(Map<String, dynamic> json) {
+    List<InvoiceDetailResponse>? details;
+    if (json['invoiceDetails'] != null) {
+      details = (json['invoiceDetails'] as List)
+          .map((item) => InvoiceDetailResponse.fromJson(item))
+          .toList();
+    }
+
     return InvoiceResponseModel(
       id: json['id'] ?? 0,
       invoiceType: json['invoiceType'] ?? json['invoice_type'] ?? 0,
@@ -162,6 +189,12 @@ class InvoiceResponseModel extends HiveObject {
                 : DateTime.now()),
       storeId: json['storeId'] ?? json['store_id'] ?? 0,
       agentId: json['agentId'] ?? json['agent_id'] ?? 0,
+      storeName: json['storeName'] ?? json['store_name'],
+      discountAmount: (json['discountAmount'] ?? json['discount_amount'] ?? 0.0)
+          .toDouble(),
+      taxAmount: (json['taxAmount'] ?? json['tax_amount'] ?? 0.0).toDouble(),
+      notes: json['notes'],
+      invoiceDetails: details,
     );
   }
 
@@ -178,5 +211,44 @@ class InvoiceResponseModel extends HiveObject {
     'invoice_date': invoiceDate.toIso8601String(),
     'store_id': storeId,
     'agent_id': agentId,
+    'store_name': storeName,
+    'discount_amount': discountAmount,
+    'tax_amount': taxAmount,
+    'notes': notes,
+    'invoice_details': invoiceDetails?.map((e) => e.toJson()).toList(),
+  };
+}
+
+// Model for invoice detail response from API
+@HiveType(typeId: 15)
+class InvoiceDetailResponse extends HiveObject {
+  @HiveField(0)
+  final int itemID;
+
+  @HiveField(1)
+  final String itemName;
+
+  @HiveField(2)
+  final double itemQuantity;
+
+  InvoiceDetailResponse({
+    required this.itemID,
+    required this.itemName,
+    required this.itemQuantity,
+  });
+
+  factory InvoiceDetailResponse.fromJson(Map<String, dynamic> json) {
+    return InvoiceDetailResponse(
+      itemID: json['itemID'] ?? json['item_id'] ?? 0,
+      itemName: json['itemName'] ?? json['item_name'] ?? '',
+      itemQuantity: (json['itemQuantity'] ?? json['item_quantity'] ?? 0.0)
+          .toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'itemID': itemID,
+    'itemName': itemName,
+    'itemQuantity': itemQuantity,
   };
 }

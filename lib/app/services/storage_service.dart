@@ -37,6 +37,7 @@ class StorageService extends GetxService {
     Hive.registerAdapter(ItemInfoAdapter());
     Hive.registerAdapter(PriceListInfoDetailAdapter());
     Hive.registerAdapter(InvoiceResponseModelAdapter());
+    Hive.registerAdapter(InvoiceDetailResponseAdapter());
     Hive.registerAdapter(VoucherResponseModelAdapter());
     Hive.registerAdapter(VisitResponseModelAdapter());
     Hive.registerAdapter(StockModelAdapter());

@@ -174,6 +174,18 @@ class AppTranslations extends Translations {
           'يجب أن يحتوي المدفوع جزئياً على مبلغ أكبر من الصفر',
       'discount_cannot_exceed_subtotal':
           'لا يمكن أن يكون الخصم أكبر من المجموع الفرعي',
+      'print': 'طباعة',
+      'print_error': 'حدث خطأ أثناء الطباعة',
+      'invoice': 'فاتورة',
+      'return_invoice': 'فاتورة مرتجع',
+      'customer_name': 'اسم العميل',
+      'invoice_number': 'رقم الفاتورة',
+      'voucher_number': 'رقم السند',
+      'item': 'الصنف',
+      'tax': 'الضريبة',
+      'agent': 'المندوب',
+      'agent_name_unavailable': 'اسم المندوب غير متاح',
+      'no_items_available': 'لا توجد أصناف متاحة',
 
       // Server error messages
       'server_error_offline_saved':
@@ -360,6 +372,18 @@ class AppTranslations extends Translations {
       'partially_paid_must_have_amount':
           'Partially paid must have an amount greater than zero',
       'discount_cannot_exceed_subtotal': 'Discount cannot exceed subtotal',
+      'print': 'Print',
+      'print_error': 'An error occurred while printing',
+      'invoice': 'Invoice',
+      'return_invoice': 'Return Invoice',
+      'customer_name': 'Customer Name',
+      'invoice_number': 'Invoice Number',
+      'voucher_number': 'Voucher Number',
+      'item': 'Item',
+      'tax': 'Tax',
+      'agent': 'Agent',
+      'agent_name_unavailable': 'Agent name unavailable',
+      'no_items_available': 'No items available',
 
       // Server error messages
       'server_error_offline_saved':
