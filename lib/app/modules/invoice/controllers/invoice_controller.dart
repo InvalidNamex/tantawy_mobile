@@ -224,20 +224,24 @@ class InvoiceController extends GetxController {
 
       if (hasConnection) {
         // Try to submit online
-        final response = await _apiProvider.batchCreateInvoices([invoice.toJson()]);
+        final response = await _apiProvider.batchCreateInvoices([
+          invoice.toJson(),
+        ]);
         logger.i('Invoice created successfully online');
-        
+
         // Parse the response to get the created invoice
-        if (response.data != null && response.data is List && (response.data as List).isNotEmpty) {
+        if (response.data != null &&
+            response.data is List &&
+            (response.data as List).isNotEmpty) {
           createdInvoice = InvoiceResponseModel.fromJson(response.data[0]);
         }
-        
+
         Get.snackbar('success'.tr, 'invoice_created'.tr);
       } else {
         // No internet - save offline and create a temporary invoice for printing
         await _storage.addPendingInvoice(invoice.toJson());
         logger.i('Invoice saved offline for sync');
-        
+
         // Create a temporary InvoiceResponseModel for offline printing
         createdInvoice = InvoiceResponseModel(
           id: DateTime.now().millisecondsSinceEpoch, // Temporary ID
@@ -264,13 +268,13 @@ class InvoiceController extends GetxController {
             );
           }).toList(),
         );
-        
+
         Get.snackbar('offline_mode'.tr, 'invoice_saved_sync'.tr);
       }
 
       // Show print dialog after closing loading, before disposing controller
       isLoading.value = false;
-      
+
       if (createdInvoice != null) {
         // Use Future.delayed to show dialog after current frame
         Future.delayed(Duration.zero, () {
@@ -289,6 +293,19 @@ class InvoiceController extends GetxController {
         await AuthSessionManager.handleAuthenticationFailure();
         isLoading.value = false;
         return;
+      }
+
+      // Check if it's a 400 error - don't navigate away
+      if (e.toString().contains('400') ||
+          e.toString().contains('Bad Request')) {
+        logger.w('❌ Bad Request (400) - staying on invoice screen');
+        isLoading.value = false;
+        Get.snackbar(
+          'error'.tr,
+          'invalid_invoice_data'.tr,
+          duration: Duration(seconds: 3),
+        );
+        return; // Stay on the screen
       }
 
       // Check if it's a server error with internet connection
@@ -327,10 +344,10 @@ class InvoiceController extends GetxController {
 
   void _showPrintDialog(InvoiceResponseModel invoice) {
     logger.d('📋 Showing print dialog for invoice ${invoice.id}');
-    
+
     Get.dialog(
-      WillPopScope(
-        onWillPop: () async => false, // Prevent back button from dismissing
+      PopScope(
+        canPop: false, // Prevent back button from dismissing
         child: AlertDialog(
           title: Text('print'.tr),
           content: Text('do_you_want_to_print_invoice'.tr),
@@ -350,9 +367,11 @@ class InvoiceController extends GetxController {
                 try {
                   // Convert invoice details to InvoiceDetailModel for printing
                   List<InvoiceDetailModel> details = [];
-                  if (invoice.invoiceDetails != null && invoice.invoiceDetails!.isNotEmpty) {
+                  if (invoice.invoiceDetails != null &&
+                      invoice.invoiceDetails!.isNotEmpty) {
                     details = invoice.invoiceDetails!.map((detail) {
-                      double itemTotal = invoice.netTotal / invoice.invoiceDetails!.length;
+                      double itemTotal =
+                          invoice.netTotal / invoice.invoiceDetails!.length;
                       return InvoiceDetailModel(
                         itemName: detail.itemName,
                         quantity: detail.itemQuantity,
@@ -369,7 +388,7 @@ class InvoiceController extends GetxController {
                     invoiceDetails: details,
                     agentName: null,
                   );
-                  
+
                   logger.d('✅ Print completed successfully');
                   Get.back(); // Close invoice screen after printing
                 } catch (e) {

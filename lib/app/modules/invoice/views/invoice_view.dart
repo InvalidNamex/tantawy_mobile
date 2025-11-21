@@ -31,18 +31,95 @@ class InvoiceView extends GetView<InvoiceController> {
         elevation: 0,
       ),
       body: AppBackground(
+        child: Column(
+          children: [
+            SizedBox(height: kToolbarHeight + 16),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: _buildItemsTable(),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Obx(
+                      () => Text(
+                        '${'net_total'.tr}: ${controller.netTotal.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () => _showInvoiceDetailsBottomSheet(context),
+                    icon: Icon(Icons.settings),
+                    label: Text('invoice_details'.tr),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showInvoiceDetailsBottomSheet(BuildContext context) {
+    Get.bottomSheet(
+      Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: kToolbarHeight + 16),
-              Expanded(child: _buildItemsTable()),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'invoice_details'.tr,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () => Get.back(),
+                  ),
+                ],
+              ),
               SizedBox(height: 16),
               controller.invoiceType != AppConstants.invoiceTypeReturnSales
                   ? Row(
                       children: [
                         Expanded(child: _buildTaxInvoiceCheckbox()),
+                        SizedBox(width: 8),
                         Expanded(child: _buildDiscountField()),
                       ],
                     )
@@ -52,45 +129,44 @@ class InvoiceView extends GetView<InvoiceController> {
               SizedBox(height: 16),
               _buildStatusDropdown(),
               SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Obx(
-                      () => TextField(
-                        controller: controller.totalPaidController,
-                        keyboardType: TextInputType.number,
-                        enabled: controller.isTotalPaidEnabled,
-                        decoration: InputDecoration(
-                          labelText: 'total_paid'.tr,
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
+              Obx(
+                () => TextFormField(
+                  controller: controller.totalPaidController,
+                  keyboardType: TextInputType.number,
+                  enabled: controller.isTotalPaidEnabled,
+                  decoration: InputDecoration(
+                    labelText: 'total_paid'.tr,
+                    border: OutlineInputBorder(),
                   ),
-                  SizedBox(width: 16),
-                  Obx(
-                    () => Text(
-                      '${'net_total'.tr}: ${controller.netTotal.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
+              ),
+              SizedBox(height: 16),
+              Obx(
+                () => Text(
+                  '${'net_total'.tr}: ${controller.netTotal.toStringAsFixed(2)}',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
               ),
               SizedBox(height: 24),
               Obx(
                 () => LoadingButton(
                   isLoading: controller.isLoading.value,
-                  onPressed: controller.submitInvoice,
+                  onPressed: () {
+                    Get.back();
+                    controller.submitInvoice();
+                  },
                   text: 'save_and_print'.tr,
                 ),
               ),
+              SizedBox(height: 16),
             ],
           ),
         ),
       ),
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
     );
   }
 
@@ -172,11 +248,14 @@ class InvoiceView extends GetView<InvoiceController> {
                   DataCell(
                     SizedBox(
                       width: 60,
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        controller: TextEditingController(
-                          text: item.quantity.value.toString(),
+                      child: TextFormField(
+                        key: ValueKey('quantity_${item.item.id}'),
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
                         ),
+                        initialValue: item.quantity.value % 1 == 0
+                            ? item.quantity.value.toInt().toString()
+                            : item.quantity.value.toString(),
                         onChanged: (value) {
                           item.quantity.value = double.tryParse(value) ?? 1.0;
                         },
@@ -184,7 +263,6 @@ class InvoiceView extends GetView<InvoiceController> {
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
-
                           filled: true,
                           fillColor: Colors.transparent,
                         ),
@@ -194,38 +272,52 @@ class InvoiceView extends GetView<InvoiceController> {
                   DataCell(
                     SizedBox(
                       width: 80,
-                      child: Obx(
-                        () => TextField(
-                          keyboardType: TextInputType.number,
-                          controller:
-                              TextEditingController(
-                                  text: item.price.value.toStringAsFixed(2),
-                                )
-                                ..selection = TextSelection.fromPosition(
-                                  TextPosition(
-                                    offset: item.price.value
-                                        .toStringAsFixed(2)
-                                        .length,
-                                  ),
-                                ),
-                          onChanged: (value) {
-                            final newPrice = double.tryParse(value) ?? 0.0;
-                            if (controller.validatePrice(item, newPrice)) {
-                              item.price.value = newPrice;
-                            }
-                          },
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            filled: true,
-                            fillColor: Colors.transparent,
-                          ),
+                      child: TextFormField(
+                        key: ValueKey('price_${item.item.id}'),
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        initialValue: item.price.value % 1 == 0
+                            ? item.price.value.toInt().toString()
+                            : item.price.value.toString(),
+                        validator: (value) {
+                          final price = double.tryParse(value ?? '') ?? 0.0;
+                          if (price < item.priceListPrice) {
+                            return 'Min: ${item.priceListPrice}';
+                          }
+                          return null;
+                        },
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        onChanged: (value) {
+                          final newPrice = double.tryParse(value) ?? 0.0;
+                          if (newPrice < item.priceListPrice && newPrice > 0) {
+                            item.price.value = item.priceListPrice;
+                          } else if (newPrice >= item.priceListPrice) {
+                            item.price.value = newPrice;
+                          }
+                        },
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          filled: true,
+                          fillColor: Colors.transparent,
+                          errorStyle: TextStyle(fontSize: 10, height: 0.5),
                         ),
                       ),
                     ),
                   ),
-                  DataCell(Obx(() => Text(item.total.toStringAsFixed(2)))),
+                  DataCell(
+                    Obx(
+                      () => Text(
+                        item.total % 1 == 0
+                            ? item.total.toInt().toString()
+                            : item.total.toStringAsFixed(2),
+                      ),
+                    ),
+                  ),
                   DataCell(
                     SizedBox(
                       width: 20,
@@ -245,7 +337,7 @@ class InvoiceView extends GetView<InvoiceController> {
   }
 
   Widget _buildDiscountField() {
-    return TextField(
+    return TextFormField(
       controller: controller.discountAmountController,
       keyboardType: TextInputType.number,
       onChanged: (value) {
