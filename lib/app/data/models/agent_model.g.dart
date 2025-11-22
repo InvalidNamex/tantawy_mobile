@@ -21,8 +21,8 @@ class AgentModelAdapter extends TypeAdapter<AgentModel> {
       name: fields[1] as String,
       token: fields[2] as String,
       storeID: fields[3] as int,
-      username: fields[4] as String,
-      password: fields[5] as String,
+      username: fields[4] == null ? '' : fields[4] as String,
+      password: fields[5] == null ? '' : fields[5] as String,
     );
   }
 

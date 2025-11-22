@@ -54,74 +54,78 @@ class ItemsStockView extends GetView<ItemsStockController> {
             child: Column(
               children: [
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: DataTable(
-                      headingRowColor: MaterialStateProperty.all(
-                        context.colors.primary.withOpacity(0.1),
-                      ),
-                      border: TableBorder.all(
-                        color: context.colors.divider,
-                        width: 1,
-                      ),
-                      columnSpacing: 24,
-                      horizontalMargin: 16,
-                      columns: [
-                        DataColumn(
-                          label: Expanded(
-                            child: Text(
-                              'item_name'.tr,
+                  child: RefreshIndicator(
+                    onRefresh: controller.refreshStock,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: DataTable(
+                        headingRowColor: MaterialStateProperty.all(
+                          context.colors.primary.withOpacity(0.1),
+                        ),
+                        border: TableBorder.all(
+                          color: context.colors.divider,
+                          width: 1,
+                        ),
+                        columnSpacing: 24,
+                        horizontalMargin: 16,
+                        columns: [
+                          DataColumn(
+                            label: Expanded(
+                              child: Text(
+                                'item_name'.tr,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: context.colors.onSurface,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'stock'.tr,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: context.colors.onSurface,
                                 fontSize: 16,
                               ),
                             ),
+                            numeric: true,
                           ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'stock'.tr,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: context.colors.onSurface,
-                              fontSize: 16,
-                            ),
-                          ),
-                          numeric: true,
-                        ),
-                      ],
-                      rows: controller.stockList.map((item) {
-                        final isNegative = item.stock < 0;
-                        final stockColor = isNegative
-                            ? context.colors.error
-                            : context.colors.onSurface;
+                        ],
+                        rows: controller.stockList.map((item) {
+                          final isNegative = item.stock < 0;
+                          final stockColor = isNegative
+                              ? context.colors.error
+                              : context.colors.onSurface;
 
-                        return DataRow(
-                          cells: [
-                            DataCell(
-                              Text(
-                                item.itemName,
-                                style: TextStyle(
-                                  color: context.colors.onSurface,
-                                  fontSize: 14,
+                          return DataRow(
+                            cells: [
+                              DataCell(
+                                Text(
+                                  item.itemName,
+                                  style: TextStyle(
+                                    color: context.colors.onSurface,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
-                            ),
-                            DataCell(
-                              Text(
-                                item.stock.toStringAsFixed(2),
-                                style: TextStyle(
-                                  color: stockColor,
-                                  fontSize: 14,
-                                  fontWeight: isNegative
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
+                              DataCell(
+                                Text(
+                                  item.stock.toStringAsFixed(2),
+                                  style: TextStyle(
+                                    color: stockColor,
+                                    fontSize: 14,
+                                    fontWeight: isNegative
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        );
-                      }).toList(),
+                            ],
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
                 ),

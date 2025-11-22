@@ -6,20 +6,20 @@ part 'agent_model.g.dart';
 class AgentModel {
   @HiveField(0)
   final int id;
-  
+
   @HiveField(1)
   final String name;
-  
+
   @HiveField(2)
   final String token;
-  
+
   @HiveField(3)
   final int storeID;
-  
-  @HiveField(4)
+
+  @HiveField(4, defaultValue: '')
   final String username;
-  
-  @HiveField(5)
+
+  @HiveField(5, defaultValue: '')
   final String password;
 
   AgentModel({

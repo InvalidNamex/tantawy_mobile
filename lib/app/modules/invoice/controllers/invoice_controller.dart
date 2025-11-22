@@ -233,7 +233,40 @@ class InvoiceController extends GetxController {
         if (response.data != null &&
             response.data is List &&
             (response.data as List).isNotEmpty) {
-          createdInvoice = InvoiceResponseModel.fromJson(response.data[0]);
+          try {
+            createdInvoice = InvoiceResponseModel.fromJson(response.data[0]);
+          } catch (e) {
+            logger.e('Failed to parse invoice response', error: e);
+          }
+        }
+
+        // If we couldn't parse the response, create a local representation for printing
+        if (createdInvoice == null) {
+          createdInvoice = InvoiceResponseModel(
+            id: 0, // ID not available from server response
+            invoiceType: invoiceType,
+            invoiceNumber: null,
+            customerVendorName: customer.customerName,
+            customerVendorId: customer.id,
+            paymentType: paymentType.value,
+            status: status.value,
+            netTotal: netTotal,
+            totalPaid: double.tryParse(totalPaidController.text) ?? 0.0,
+            invoiceDate: DateTime.now(),
+            storeId: agent.storeID,
+            agentId: agent.id,
+            storeName: null,
+            discountAmount: discountAmount,
+            taxAmount: taxAmount,
+            notes: null,
+            invoiceDetails: selectedItems.map((item) {
+              return InvoiceDetailResponse(
+                itemID: item.item.id,
+                itemName: item.item.itemName,
+                itemQuantity: item.quantity.value,
+              );
+            }).toList(),
+          );
         }
 
         Get.snackbar('success'.tr, 'invoice_created'.tr);
@@ -275,15 +308,14 @@ class InvoiceController extends GetxController {
       // Show print dialog after closing loading, before disposing controller
       isLoading.value = false;
 
-      if (createdInvoice != null) {
-        // Use Future.delayed to show dialog after current frame
-        Future.delayed(Duration.zero, () {
-          _showPrintDialog(createdInvoice!);
-        });
-        return; // Prevent automatic Get.back()
-      } else {
-        Get.back();
-      }
+      // Close the bottom sheet first
+      Get.back();
+
+      // Use Future.delayed to show dialog after current frame
+      Future.delayed(Duration(milliseconds: 300), () {
+        _showPrintDialog(createdInvoice!);
+      });
+      return;
     } catch (e, stackTrace) {
       logger.e('Failed to submit invoice', error: e, stackTrace: stackTrace);
 
@@ -355,15 +387,14 @@ class InvoiceController extends GetxController {
             TextButton(
               onPressed: () {
                 logger.d('❌ User cancelled print');
-                Get.back(); // Close dialog
-                Get.back(); // Close invoice screen
+                Navigator.pop(Get.context!);
               },
               child: Text('cancel'.tr),
             ),
             ElevatedButton(
               onPressed: () async {
                 logger.d('🖨️ User confirmed print');
-                Get.back(); // Close dialog
+                Navigator.pop(Get.context!);
                 try {
                   // Convert invoice details to InvoiceDetailModel for printing
                   List<InvoiceDetailModel> details = [];

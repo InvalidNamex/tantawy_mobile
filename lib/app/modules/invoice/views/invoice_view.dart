@@ -97,70 +97,74 @@ class InvoiceView extends GetView<InvoiceController> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'invoice_details'.tr,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'invoice_details'.tr,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () => Get.back(),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                controller.invoiceType != AppConstants.invoiceTypeReturnSales
+                    ? Row(
+                        children: [
+                          Expanded(child: _buildTaxInvoiceCheckbox()),
+                          SizedBox(width: 8),
+                          Expanded(child: _buildDiscountField()),
+                        ],
+                      )
+                    : SizedBox(),
+                SizedBox(height: 16),
+                _buildPaymentTypeDropdown(),
+                SizedBox(height: 16),
+                _buildStatusDropdown(),
+                SizedBox(height: 16),
+                Obx(
+                  () => TextFormField(
+                    controller: controller.totalPaidController,
+                    keyboardType: TextInputType.number,
+                    enabled: controller.isTotalPaidEnabled,
+                    decoration: InputDecoration(
+                      labelText: 'total_paid'.tr,
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+                Obx(
+                  () => Text(
+                    '${'net_total'.tr}: ${controller.netTotal.toStringAsFixed(2)}',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () => Get.back(),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              controller.invoiceType != AppConstants.invoiceTypeReturnSales
-                  ? Row(
-                      children: [
-                        Expanded(child: _buildTaxInvoiceCheckbox()),
-                        SizedBox(width: 8),
-                        Expanded(child: _buildDiscountField()),
-                      ],
-                    )
-                  : SizedBox(),
-              SizedBox(height: 16),
-              _buildPaymentTypeDropdown(),
-              SizedBox(height: 16),
-              _buildStatusDropdown(),
-              SizedBox(height: 16),
-              Obx(
-                () => TextFormField(
-                  controller: controller.totalPaidController,
-                  keyboardType: TextInputType.number,
-                  enabled: controller.isTotalPaidEnabled,
-                  decoration: InputDecoration(
-                    labelText: 'total_paid'.tr,
-                    border: OutlineInputBorder(),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-              ),
-              SizedBox(height: 16),
-              Obx(
-                () => Text(
-                  '${'net_total'.tr}: ${controller.netTotal.toStringAsFixed(2)}',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+                SizedBox(height: 24),
+                Obx(
+                  () => LoadingButton(
+                    isLoading: controller.isLoading.value,
+                    onPressed: () {
+                      controller.submitInvoice();
+                    },
+                    text: 'save_and_print'.tr,
+                  ),
                 ),
-              ),
-              SizedBox(height: 24),
-              Obx(
-                () => LoadingButton(
-                  isLoading: controller.isLoading.value,
-                  onPressed: () {
-                    Get.back();
-                    controller.submitInvoice();
-                  },
-                  text: 'save_and_print'.tr,
-                ),
-              ),
-              SizedBox(height: 16),
-            ],
+                SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),
