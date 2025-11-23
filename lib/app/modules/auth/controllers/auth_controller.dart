@@ -227,8 +227,11 @@ class AuthController extends GetxController {
       await _storage.saveCustomers(customers);
       logger.i('✅ Customers saved to cache successfully');
 
+      logger.i('📦 Fetching items from API...');
       final items = await _dataRepository.getItems();
+      logger.i('✅ Received ${items.length} items from API');
       await _storage.saveItems(items);
+      logger.i('✅ Items saved to storage');
 
       logger.i('💾 Fetching all price list details...');
       final priceListDetails = await _dataRepository.getAllPriceListDetails();

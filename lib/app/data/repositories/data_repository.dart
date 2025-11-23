@@ -7,6 +7,7 @@ import '../models/voucher_model.dart';
 import '../models/visit_model.dart';
 import '../models/stock_model.dart';
 import '../models/cash_balance_model.dart';
+import '../models/customer_transaction_model.dart';
 import '../providers/api_provider.dart';
 import '../../services/storage_service.dart';
 import '../../utils/logger.dart';
@@ -236,6 +237,49 @@ class DataRepository {
     }
   }
 
+  Future<List<CustomerTransactionModel>>
+  fetchAndSaveCustomerTransactions() async {
+    try {
+      logger.i('🔄 Fetching customer transactions');
+
+      final response = await _apiProvider.getCustomerTransactions();
+      logger.d('📦 Response data type: ${response.data.runtimeType}');
+
+      // Handle response structure
+      final dynamic transactionsList = response.data['data'] ?? response.data;
+
+      logger.d('📊 Transactions list type: ${transactionsList.runtimeType}');
+      logger.d('📊 Transactions list length: ${transactionsList.length}');
+
+      final transactions = (transactionsList as List)
+          .map((json) => CustomerTransactionModel.fromJson(json))
+          .toList();
+
+      logger.i(
+        '✅ Fetched and parsed ${transactions.length} customer transactions',
+      );
+
+      // Save to local storage
+      await _storage.saveCustomerTransactions(transactions);
+
+      return transactions;
+    } catch (e, stackTrace) {
+      logger.e('❌ ERROR in fetchAndSaveCustomerTransactions: $e');
+      logger.e('❌ Stack trace: $stackTrace');
+
+      // Check if it's an authentication error
+      if (AuthSessionManager.isAuthenticationError(e)) {
+        logger.w(
+          '🔐 Authentication error in fetchAndSaveCustomerTransactions - agent may not have permissions',
+        );
+        // Return empty list instead of forcing logout since it's not critical
+        return <CustomerTransactionModel>[];
+      }
+
+      rethrow;
+    }
+  }
+
   Future<void> syncData(int agentId, int storeId) async {
     // Fetch all invoices without filters
     await fetchAndSaveAllInvoices(agentId);
@@ -292,6 +336,29 @@ class DataRepository {
       if (AuthSessionManager.isAuthenticationError(e)) {
         logger.i(
           'ℹ️ Agent does not have permission to access cash balance data',
+        );
+      }
+      // Non-critical, don't throw
+    }
+
+    // Fetch customer transactions (non-critical)
+    try {
+      final transactions = await fetchAndSaveCustomerTransactions();
+      if (transactions.isNotEmpty) {
+        logger.i(
+          '✅ Customer transactions synced successfully (${transactions.length} customers)',
+        );
+      } else {
+        logger.i(
+          'ℹ️ No customer transactions available or agent lacks access permissions',
+        );
+      }
+    } catch (e) {
+      logger.w('⚠️ Failed to sync customer transactions: $e');
+      // Check if it's an authentication error
+      if (AuthSessionManager.isAuthenticationError(e)) {
+        logger.i(
+          'ℹ️ Agent does not have permission to access customer transactions',
         );
       }
       // Non-critical, don't throw

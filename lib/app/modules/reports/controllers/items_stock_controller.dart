@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:dio/dio.dart';
 import '../../../data/models/stock_model.dart';
 import '../../../services/storage_service.dart';
 import '../../../services/connectivity_service.dart';
@@ -50,11 +51,36 @@ class ItemsStockController extends GetxController {
       final agent = _storage.getAgent();
       if (agent == null) return;
 
-      // Fetch stock from API
-      final response = await _apiProvider.getAgentStock(agent.storeID);
+      // Fetch stock from API - force fresh data on pull-to-refresh
+      final response = await _apiProvider.getAgentStock(
+        agent.storeID,
+        forceRefresh: true,
+      );
 
       if (response.statusCode == 200 && response.data != null) {
-        final List<dynamic> data = response.data;
+        // Handle both List and Map responses
+        List<dynamic> data;
+        if (response.data is List) {
+          data = response.data as List<dynamic>;
+        } else if (response.data is Map) {
+          // Try common wrapper keys
+          final map = response.data as Map<String, dynamic>;
+          if (map.containsKey('results')) {
+            data = map['results'] as List<dynamic>;
+          } else if (map.containsKey('data')) {
+            data = map['data'] as List<dynamic>;
+          } else if (map.containsKey('items')) {
+            data = map['items'] as List<dynamic>;
+          } else {
+            logger.e('❌ Unexpected API response structure: $map');
+            throw Exception('Invalid API response format');
+          }
+        } else {
+          throw Exception(
+            'Unexpected response type: ${response.data.runtimeType}',
+          );
+        }
+
         final List<StockModel> stocks = data
             .map((json) => StockModel.fromJson(json))
             .toList();

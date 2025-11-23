@@ -21,9 +21,11 @@ import '../modules/visit/views/visit_view.dart';
 import '../modules/reports/bindings/reports_binding.dart';
 import '../modules/reports/bindings/items_stock_binding.dart';
 import '../modules/reports/bindings/cash_balance_binding.dart';
+import '../modules/reports/bindings/customer_transactions_binding.dart';
 import '../modules/reports/views/reports_view.dart';
 import '../modules/reports/views/items_stock_view.dart';
 import '../modules/reports/views/cash_balance_view.dart';
+import '../modules/reports/views/customer_transactions_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -98,6 +100,11 @@ class AppPages {
       name: AppRoutes.cashBalance,
       page: () => CashBalanceView(),
       binding: CashBalanceBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.customerTransactions,
+      page: () => CustomerTransactionsView(),
+      binding: CustomerTransactionsBinding(),
     ),
   ];
 }

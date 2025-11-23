@@ -78,8 +78,13 @@ class RateLimitInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
+    // Skip caching if explicitly requested
+    final skipCache = response.requestOptions.extra['skipCache'] == true;
+
     // Cache successful responses for GET requests
-    if (response.requestOptions.method == 'GET' && response.statusCode == 200) {
+    if (!skipCache &&
+        response.requestOptions.method == 'GET' &&
+        response.statusCode == 200) {
       final cacheKey = _getCacheKey(response.requestOptions);
 
       // Determine cache duration based on endpoint
@@ -89,6 +94,10 @@ class RateLimitInterceptor extends Interceptor {
         _cacheManager.set(cacheKey, response.data, ttl: cacheDuration);
         logger.d('💾 Cached response for: ${response.requestOptions.path}');
       }
+    } else if (skipCache) {
+      logger.d(
+        '🔄 Skipping cache for forced refresh: ${response.requestOptions.path}',
+      );
     }
 
     handler.next(response);

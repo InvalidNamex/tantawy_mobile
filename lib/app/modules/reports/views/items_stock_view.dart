@@ -44,6 +44,20 @@ class ItemsStockView extends GetView<ItemsStockController> {
                       color: context.colors.onSurface.withOpacity(0.6),
                     ),
                   ),
+                  SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: controller.refreshStock,
+                    icon: Icon(Icons.refresh),
+                    label: Text('refresh'.tr),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: context.colors.primary,
+                      foregroundColor: context.colors.onPrimary,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             );

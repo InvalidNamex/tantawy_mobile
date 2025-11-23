@@ -56,6 +56,10 @@ class InvoiceController extends GetxController {
     customer = Get.arguments['customer'];
     invoiceType = Get.arguments['invoiceType'];
     availableItems.value = _storage.getItems();
+    logger.d('📦 INVOICE: Loaded ${availableItems.length} items from storage');
+    if (availableItems.isEmpty) {
+      logger.w('⚠️ INVOICE: No items available! Items list is empty.');
+    }
 
     // Listen to status changes
     ever(status, (_) => _handleStatusChange());

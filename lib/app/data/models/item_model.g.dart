@@ -19,7 +19,7 @@ class ItemModelAdapter extends TypeAdapter<ItemModel> {
     return ItemModel(
       id: fields[0] as int,
       itemName: fields[1] as String,
-      itemGroupId: fields[2] as int,
+      itemGroupId: fields[2] as int?,
       barcode: fields[3] as String,
       sign: fields[4] as String,
     );

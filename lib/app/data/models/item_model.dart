@@ -6,23 +6,23 @@ part 'item_model.g.dart';
 class ItemModel {
   @HiveField(0)
   final int id;
-  
+
   @HiveField(1)
   final String itemName;
-  
+
   @HiveField(2)
-  final int itemGroupId;
-  
+  final int? itemGroupId;
+
   @HiveField(3)
   final String barcode;
-  
+
   @HiveField(4)
   final String sign;
 
   ItemModel({
     required this.id,
     required this.itemName,
-    required this.itemGroupId,
+    this.itemGroupId,
     required this.barcode,
     required this.sign,
   });

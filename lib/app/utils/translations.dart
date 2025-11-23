@@ -154,6 +154,7 @@ class AppTranslations extends Translations {
       'sync_items_failed':
           'فشلت بعض العناصر في المزامنة وسيتم إعادة المحاولة لاحقاً:',
       'synced_items': 'تمت المزامنة: {0} فواتير، {1} سندات، {2} زيارات',
+      'refresh': 'تحديث',
       'data_refreshed': 'تم تحديث البيانات بنجاح',
       'failed_to_refresh': 'فشل التحديث',
       'no_agent_found': 'لم يتم العثور على مندوب',
@@ -212,6 +213,13 @@ class AppTranslations extends Translations {
       'invoices_error': 'فواتير: {0}',
       'vouchers_error': 'سندات: {0}',
       'visits_error': 'زيارات: {0}',
+      'customer_transactions': 'حركات العملاء',
+      'view_customer_transactions_report': 'عرض تقرير حركات العملاء',
+      'no_transactions_data': 'لا توجد بيانات حركات',
+      'transactions': 'حركة',
+      'customer_transactions_updated': 'تم تحديث حركات العملاء',
+      'failed_to_refresh_customer_transactions': 'فشل تحديث حركات العملاء',
+      'cannot_refresh_offline': 'لا يمكن التحديث في وضع عدم الاتصال',
     },
     'en': {
       'app_name': 'Tantawy',
@@ -363,6 +371,7 @@ class AppTranslations extends Translations {
       'sync_items_failed':
           'Some items failed to sync and will be retried later:',
       'synced_items': 'Synced: {0} invoices, {1} vouchers, {2} visits',
+      'refresh': 'Refresh',
       'data_refreshed': 'Data refreshed successfully',
       'failed_to_refresh': 'Failed to refresh',
       'no_agent_found': 'No agent found',
@@ -421,6 +430,14 @@ class AppTranslations extends Translations {
       'invoices_error': 'Invoices: {0}',
       'vouchers_error': 'Vouchers: {0}',
       'visits_error': 'Visits: {0}',
+      'customer_transactions': 'Customer Transactions',
+      'view_customer_transactions_report': 'View customer transactions report',
+      'no_transactions_data': 'No transactions data available',
+      'transactions': 'transaction',
+      'customer_transactions_updated': 'Customer transactions updated',
+      'failed_to_refresh_customer_transactions':
+          'Failed to refresh customer transactions',
+      'cannot_refresh_offline': 'Cannot refresh while offline',
     },
   };
 }

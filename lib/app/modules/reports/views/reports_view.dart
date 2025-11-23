@@ -43,6 +43,13 @@ class ReportsView extends GetView<ReportsController> {
               subtitle: 'view_cash_balance_report'.tr,
               onTap: () => Get.toNamed(AppRoutes.cashBalance),
             ),
+            _buildReportCard(
+              context: context,
+              icon: Icons.receipt_long,
+              title: 'customer_transactions'.tr,
+              subtitle: 'view_customer_transactions_report'.tr,
+              onTap: () => Get.toNamed(AppRoutes.customerTransactions),
+            ),
           ],
         ),
       ),

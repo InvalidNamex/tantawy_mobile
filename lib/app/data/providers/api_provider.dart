@@ -118,6 +118,7 @@ class ApiProvider {
       '/api/agents/visit-plans/active-with-customers/',
       '/api/agents/stock/',
       '/api/agents/cash_balance/',
+      '/api/agents/customer_transactions/',
       '/api/invoices/batch-create/',
       '/api/vouchers/batch-create/',
       '/api/visits/batch-create/',
@@ -145,9 +146,17 @@ class ApiProvider {
     return await _dio.get('/api/price-list-details/');
   }
 
-  Future<Response> getAgentStock(int storeId) async {
+  Future<Response> getAgentStock(
+    int storeId, {
+    bool forceRefresh = false,
+  }) async {
     final params = <String, dynamic>{'storeID': storeId};
-    return await _dio.get('/api/agents/stock/', queryParameters: params);
+    final options = forceRefresh ? Options(extra: {'skipCache': true}) : null;
+    return await _dio.get(
+      '/api/agents/stock/',
+      queryParameters: params,
+      options: options,
+    );
   }
 
   Future<Response> getCashBalance(
@@ -168,6 +177,19 @@ class ApiProvider {
 
     logger.d('📦 Cash balance response status: ${response.statusCode}');
     logger.d('📦 Cash balance response data: ${response.data}');
+
+    return response;
+  }
+
+  Future<Response> getCustomerTransactions() async {
+    logger.d('🔍 GET /api/agents/customer_transactions/');
+
+    final response = await _dio.get('/api/agents/customer_transactions/');
+
+    logger.d(
+      '📦 Customer transactions response status: ${response.statusCode}',
+    );
+    logger.d('📦 Customer transactions count: ${response.data?['count']}');
 
     return response;
   }

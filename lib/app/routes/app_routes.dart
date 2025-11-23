@@ -13,4 +13,5 @@ class AppRoutes {
   static const reports = '/reports';
   static const itemsStock = '/items-stock';
   static const cashBalance = '/cash-balance';
+  static const customerTransactions = '/customer-transactions';
 }

@@ -115,37 +115,71 @@ class LocationService extends GetxService {
     if (!hasPermission) return null;
 
     try {
-      logger.i('Attempting to get current position with timeout...');
-      final position =
-          await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high,
-            timeLimit: Duration(seconds: 10),
-          ).timeout(
-            Duration(seconds: 15),
-            onTimeout: () {
-              logger.w('Location request timed out');
-              Get.snackbar(
-                'error'.tr,
-                'Location request timed out. Please check GPS is enabled.',
-                backgroundColor: Colors.orange.withOpacity(0.8),
-                colorText: Colors.white,
-                duration: Duration(seconds: 3),
-              );
-              throw Exception('Location timeout');
-            },
-          );
-      logger.i(
-        'Position obtained: ${position.latitude}, ${position.longitude}',
-      );
-      return position;
+      logger.i('Attempting to get current position with high accuracy...');
+
+      // First try with high accuracy
+      try {
+        final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 15),
+        ).timeout(Duration(seconds: 20));
+        logger.i(
+          'Position obtained with high accuracy: ${position.latitude}, ${position.longitude}',
+        );
+        return position;
+      } catch (e) {
+        logger.w('High accuracy failed: $e, trying with medium accuracy...');
+
+        // Fallback to medium accuracy (faster, works better indoors)
+        final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 10),
+        ).timeout(Duration(seconds: 15));
+        logger.i(
+          'Position obtained with medium accuracy: ${position.latitude}, ${position.longitude}',
+        );
+        return position;
+      }
     } catch (e) {
       logger.e('Error getting location: $e');
+
+      // Try to get last known position as final fallback
+      try {
+        logger.i('Trying to get last known position...');
+        final lastPosition = await Geolocator.getLastKnownPosition();
+        if (lastPosition != null) {
+          logger.i(
+            'Using last known position: ${lastPosition.latitude}, ${lastPosition.longitude}',
+          );
+          Get.snackbar(
+            'info'.tr,
+            'Using last known location',
+            backgroundColor: Colors.blue.withOpacity(0.8),
+            colorText: Colors.white,
+            duration: Duration(seconds: 2),
+          );
+          return lastPosition;
+        }
+      } catch (lastPosError) {
+        logger.e('Failed to get last known position: $lastPosError');
+      }
+
+      // Show helpful error message
+      String errorMessage = 'Cannot get location. ';
+      if (e.toString().contains('timeout') ||
+          e.toString().contains('TimeoutException')) {
+        errorMessage +=
+            'Please ensure GPS is enabled and you are in an area with good signal. Try moving closer to a window if indoors.';
+      } else {
+        errorMessage += e.toString();
+      }
+
       Get.snackbar(
         'error'.tr,
-        'Cannot get location: ${e.toString()}',
+        errorMessage,
         backgroundColor: Colors.red.withOpacity(0.8),
         colorText: Colors.white,
-        duration: Duration(seconds: 3),
+        duration: Duration(seconds: 5),
       );
       return null;
     }

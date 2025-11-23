@@ -26,6 +26,31 @@ class VisitView extends GetView<VisitController> {
               '${'customer'.tr}: ${controller.customer.customerName}',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+            SizedBox(height: 10),
+            // Location display with refresh button
+            Obx(
+              () => Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.location_on, size: 16, color: Colors.grey[700]),
+                  SizedBox(width: 5),
+                  Text(
+                    controller.location.value.isEmpty
+                        ? 'Getting location...'
+                        : controller.location.value,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                  ),
+                  SizedBox(width: 5),
+                  IconButton(
+                    icon: Icon(Icons.refresh, size: 20),
+                    onPressed: controller.refreshLocation,
+                    tooltip: 'Refresh location',
+                    padding: EdgeInsets.all(4),
+                    constraints: BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
             Spacer(),
             Padding(
               padding: const EdgeInsets.all(8.0),

@@ -9,6 +9,7 @@ import '../data/models/voucher_model.dart';
 import '../data/models/visit_model.dart';
 import '../data/models/stock_model.dart';
 import '../data/models/cash_balance_model.dart';
+import '../data/models/customer_transaction_model.dart';
 import '../utils/logger.dart';
 
 class StorageService extends GetxService {
@@ -21,6 +22,7 @@ class StorageService extends GetxService {
   late Box<VisitResponseModel> _visitsBox;
   late Box<StockModel> _stockBox;
   late Box<CashBalanceModel> _cashBalanceBox;
+  late Box<CustomerTransactionModel> _customerTransactionsBox;
   late Box _pendingInvoicesBox;
   late Box _pendingVouchersBox;
   late Box _pendingVisitsBox;
@@ -42,6 +44,8 @@ class StorageService extends GetxService {
     Hive.registerAdapter(VisitResponseModelAdapter());
     Hive.registerAdapter(StockModelAdapter());
     Hive.registerAdapter(CashBalanceModelAdapter());
+    Hive.registerAdapter(CustomerTransactionModelAdapter());
+    Hive.registerAdapter(TransactionModelAdapter());
 
     _agentBox = await Hive.openBox<AgentModel>('agent');
     _customerBox = await Hive.openBox<CustomerModel>('customers');
@@ -52,6 +56,9 @@ class StorageService extends GetxService {
     _visitsBox = await Hive.openBox<VisitResponseModel>('visits');
     _stockBox = await Hive.openBox<StockModel>('stock');
     _cashBalanceBox = await Hive.openBox<CashBalanceModel>('cash_balance');
+    _customerTransactionsBox = await Hive.openBox<CustomerTransactionModel>(
+      'customer_transactions',
+    );
     _pendingInvoicesBox = await Hive.openBox('pending_invoices');
     _pendingVouchersBox = await Hive.openBox('pending_vouchers');
     _pendingVisitsBox = await Hive.openBox('pending_visits');
@@ -96,12 +103,18 @@ class StorageService extends GetxService {
   // Items
   Future<void> saveItems(List<ItemModel> items) async {
     await _itemBox.clear();
+    logger.d('💾 STORAGE: Saving ${items.length} items to storage...');
     for (var item in items) {
       await _itemBox.put(item.id, item);
     }
+    logger.d('✅ STORAGE: ${items.length} items saved successfully');
   }
 
-  List<ItemModel> getItems() => _itemBox.values.toList();
+  List<ItemModel> getItems() {
+    final items = _itemBox.values.toList();
+    logger.d('📦 STORAGE: Retrieved ${items.length} items from storage');
+    return items;
+  }
 
   // Price Lists
   Future<void> savePriceListDetails(List<PriceListDetailModel> details) async {
@@ -333,6 +346,21 @@ class StorageService extends GetxService {
 
   CashBalanceModel? getCashBalance() {
     return _cashBalanceBox.get('latest');
+  }
+
+  // Customer Transactions
+  Future<void> saveCustomerTransactions(
+    List<CustomerTransactionModel> transactions,
+  ) async {
+    await _customerTransactionsBox.clear();
+    for (var transaction in transactions) {
+      await _customerTransactionsBox.put(transaction.customerId, transaction);
+    }
+    logger.d('✅ STORAGE: ${transactions.length} customer transactions saved');
+  }
+
+  List<CustomerTransactionModel> getCustomerTransactions() {
+    return _customerTransactionsBox.values.toList();
   }
 
   // Settings - Theme and Language

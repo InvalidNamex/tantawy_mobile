@@ -40,6 +40,11 @@ class VisitController extends GetxController {
     }
   }
 
+  Future<void> refreshLocation() async {
+    location.value = 'Getting location...';
+    await _getLocation();
+  }
+
   Future<void> submitVisit() async {
     // Validate notes
     if (notesController.text.isEmpty) {
