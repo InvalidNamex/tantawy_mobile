@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'storage_service.dart';
 import 'connectivity_service.dart';
 import 'cache_manager.dart';
+import 'sentry_service.dart';
 import '../modules/settings/controllers/settings_controller.dart';
 import '../modules/auth/controllers/auth_controller.dart';
 

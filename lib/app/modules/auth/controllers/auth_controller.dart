@@ -5,11 +5,13 @@ import '../../../data/repositories/data_repository.dart';
 import '../../../services/storage_service.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../services/cache_manager.dart';
+import '../../../services/sentry_service.dart';
 import '../../../routes/app_routes.dart';
 import '../../../utils/logger.dart';
 import '../../../utils/api_error_handler.dart';
+import '../../../utils/sentry_error_handler.dart';
 
-class AuthController extends GetxController {
+class AuthController extends GetxController with SentryErrorHandler {
   final AuthRepository _authRepository = AuthRepository();
   final DataRepository _dataRepository = DataRepository();
   final StorageService _storage = Get.find<StorageService>();
@@ -134,6 +136,13 @@ class AuthController extends GetxController {
         '🔍 LOGIN: Credentials that will be stored - Username: ${agent.username}, Password: ${agent.password}',
       );
 
+      // Set user context in Sentry
+      await SentryService.setUser(
+        id: agent.id.toString(),
+        username: agent.username,
+        extras: {'agent_name': agent.name, 'store_id': agent.storeID},
+      );
+
       await _storage.saveAgent(agent);
       logger.d('💾 LOGIN: Agent saved to storage');
 
@@ -250,12 +259,20 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     try {
       logger.d('🚪 LOGOUT: Clearing agent data...');
+
+      // Clear user context from Sentry
+      await SentryService.clearUser();
+
       await _storage.clearAgent();
       logger.i('✅ LOGOUT: Logged out successfully');
 
       Get.offAllNamed(AppRoutes.login);
     } catch (e) {
       logger.e('Logout failed', error: e);
+
+      // Report logout error to Sentry
+      await SentryService.captureException(e, hint: 'Logout operation failed');
+
       Get.snackbar('error'.tr, '${'failed_to_logout'.tr}: $e');
     }
   }

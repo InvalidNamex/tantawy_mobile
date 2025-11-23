@@ -9,6 +9,7 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
+  sentry_flutter: ^9.8.0
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
@@ -29,6 +30,7 @@ dependencies:
   shared_preferences: ^2.3.3
   
 dev_dependencies:
+  sentry_dart_plugin: ^3.2.0
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
@@ -58,6 +60,7 @@ flutter:
     - assets/images/transactions/new-return-invoice.png
     - assets/images/transactions/new-receipt.png
     - assets/images/transactions/new-negative-visit.png
+    - shorebird.yaml
 
   fonts:
     - family: Cairo
@@ -65,3 +68,9 @@ flutter:
         - asset: assets/fonts/Cairo-Regular.ttf
         - asset: assets/fonts/Cairo-Bold.ttf
           weight: 700
+
+sentry:
+  upload_debug_symbols: true
+  upload_source_maps: true
+  project: flutter
+  org: casatek
