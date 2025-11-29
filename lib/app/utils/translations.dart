@@ -220,6 +220,19 @@ class AppTranslations extends Translations {
       'customer_transactions_updated': 'تم تحديث حركات العملاء',
       'failed_to_refresh_customer_transactions': 'فشل تحديث حركات العملاء',
       'cannot_refresh_offline': 'لا يمكن التحديث في وضع عدم الاتصال',
+      
+      // Shorebird update messages
+      'update_available': 'تحديث متاح',
+      'update_available_message': 'يتوفر تحديث جديد للتطبيق',
+      'update_available_dialog_message': 'يتوفر تحديث جديد للتطبيق. هل تريد تنزيله الآن؟',
+      'update_now': 'تحديث الآن',
+      'later': 'لاحقاً',
+      'update_downloading': 'جاري تنزيل التحديث',
+      'update_downloading_message': 'يرجى الانتظار أثناء تنزيل التحديث...',
+      'update_complete': 'اكتمل التحديث',
+      'update_restart_message': 'تم تنزيل التحديث بنجاح. سيتم تطبيقه عند إعادة تشغيل التطبيق.',
+      'update_applied_on_restart': 'سيتم تطبيق التحديث عند إعادة تشغيل التطبيق',
+      'update_download_failed': 'فشل تنزيل التحديث. يرجى المحاولة مرة أخرى لاحقاً.',
     },
     'en': {
       'app_name': 'Tantawy',
@@ -438,6 +451,19 @@ class AppTranslations extends Translations {
       'failed_to_refresh_customer_transactions':
           'Failed to refresh customer transactions',
       'cannot_refresh_offline': 'Cannot refresh while offline',
+      
+      // Shorebird update messages
+      'update_available': 'Update Available',
+      'update_available_message': 'A new app update is available',
+      'update_available_dialog_message': 'A new update is available for the app. Would you like to download it now?',
+      'update_now': 'Update Now',
+      'later': 'Later',
+      'update_downloading': 'Downloading Update',
+      'update_downloading_message': 'Please wait while the update is being downloaded...',
+      'update_complete': 'Update Complete',
+      'update_restart_message': 'The update has been downloaded successfully. It will be applied when you restart the app.',
+      'update_applied_on_restart': 'Update will be applied on app restart',
+      'update_download_failed': 'Failed to download update. Please try again later.',
     },
   };
 }
