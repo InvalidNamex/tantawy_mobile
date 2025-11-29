@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 import 'storage_service.dart';
 import 'connectivity_service.dart';
 import 'cache_manager.dart';
+import 'sentry_service.dart';
+import 'shorebird_update_service.dart';
 import '../modules/settings/controllers/settings_controller.dart';
 import '../modules/auth/controllers/auth_controller.dart';
 
@@ -17,6 +19,7 @@ class DependencyInjection {
     final connectivityService = await ConnectivityService().init();
     Get.put(connectivityService, permanent: true);
     Get.put(CacheManager(), permanent: true);
+    Get.put(ShorebirdUpdateService(), permanent: true);
   }
 
   static void _initControllers() {
