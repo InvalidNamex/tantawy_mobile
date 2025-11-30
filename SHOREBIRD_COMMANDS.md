@@ -38,8 +38,11 @@ Use when:
 - Major version bump
 
 ```bash
-# For Android
+# For Android (AAB - Default)
 shorebird release android
+
+# For Android (APK)
+shorebird release android --artifact apk
 
 # For iOS
 shorebird release ios

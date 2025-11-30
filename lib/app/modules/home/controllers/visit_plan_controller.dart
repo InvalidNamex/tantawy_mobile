@@ -63,6 +63,7 @@ class VisitPlanController extends GetxController {
             await _dataRepository.fetchAndSaveAllInvoices(agent.id);
             await _dataRepository.fetchAndSaveAllVouchers(agent.id);
             await _dataRepository.fetchAndSaveAllVisits(agent.id);
+            await _dataRepository.fetchAndSaveItemsGroups();
 
             logger.i('✅ VISIT_PLAN: Data fetched and cached successfully');
           } catch (e) {
@@ -217,6 +218,7 @@ class VisitPlanController extends GetxController {
           await _dataRepository.fetchAndSaveAllInvoices(agent.id);
           await _dataRepository.fetchAndSaveAllVouchers(agent.id);
           await _dataRepository.fetchAndSaveAllVisits(agent.id);
+          await _dataRepository.fetchAndSaveItemsGroups();
           logger.i('✅ Latest data fetched successfully');
           completedSteps++;
           syncProgress.value = 1.0;
@@ -364,6 +366,7 @@ class VisitPlanController extends GetxController {
         _dataRepository.fetchAndSaveAllInvoices(agent.id),
         _dataRepository.fetchAndSaveAllVouchers(agent.id),
         _dataRepository.fetchAndSaveAllVisits(agent.id),
+        _dataRepository.fetchAndSaveItemsGroups(),
       ]);
 
       logger.i('✅ REFRESH: All data refreshed successfully');

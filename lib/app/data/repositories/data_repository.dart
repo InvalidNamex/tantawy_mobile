@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 import '../models/customer_model.dart';
 import '../models/item_model.dart';
+import '../models/items_groups_model.dart';
 import '../models/price_list_detail_model.dart';
 import '../models/invoice_model.dart';
 import '../models/voucher_model.dart';
@@ -51,6 +52,31 @@ class DataRepository {
     return (response.data as List)
         .map((json) => ItemModel.fromJson(json))
         .toList();
+  }
+
+  Future<List<ItemsGroupsModel>> getItemsGroups() async {
+    final response = await _apiProvider.getItemsGroups();
+    return (response.data as List)
+        .map((json) => ItemsGroupsModel.fromJson(json))
+        .toList();
+  }
+
+  Future<List<ItemsGroupsModel>> fetchAndSaveItemsGroups() async {
+    try {
+      logger.i('🔄 Fetching item groups');
+
+      final groups = await getItemsGroups();
+      logger.i('✅ Fetched ${groups.length} item groups');
+
+      // Save to local storage
+      await _storage.saveItemsGroups(groups);
+
+      return groups;
+    } catch (e, stackTrace) {
+      logger.e('❌ ERROR in fetchAndSaveItemsGroups: $e');
+      logger.e('❌ Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
   Future<List<PriceListDetailModel>> getAllPriceListDetails() async {
@@ -361,6 +387,19 @@ class DataRepository {
           'ℹ️ Agent does not have permission to access customer transactions',
         );
       }
+      // Non-critical, don't throw
+    }
+
+    // Fetch item groups (non-critical)
+    try {
+      final groups = await fetchAndSaveItemsGroups();
+      if (groups.isNotEmpty) {
+        logger.i('✅ Item groups synced successfully (${groups.length} groups)');
+      } else {
+        logger.i('ℹ️ No item groups available');
+      }
+    } catch (e) {
+      logger.w('⚠️ Failed to sync item groups: $e');
       // Non-critical, don't throw
     }
   }

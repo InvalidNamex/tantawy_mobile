@@ -50,8 +50,8 @@ class LoginView extends GetView<AuthController> {
                   () => LoadingButton(
                     isLoading: controller.isLoading.value,
                     onPressed: () => controller.login(
-                      _usernameController.text,
-                      _passwordController.text,
+                      _usernameController.text.trim(),
+                      _passwordController.text.trim(),
                     ),
                     text: 'login'.tr,
                     textStyle: TextStyle(fontSize: 18),

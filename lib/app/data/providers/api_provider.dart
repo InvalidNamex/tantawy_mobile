@@ -142,6 +142,10 @@ class ApiProvider {
     return await _dio.get('/api/items/');
   }
 
+  Future<Response> getItemsGroups() async {
+    return await _dio.get('/api/items-groups/');
+  }
+
   Future<Response> getAllPriceListDetails() async {
     return await _dio.get('/api/price-list-details/');
   }

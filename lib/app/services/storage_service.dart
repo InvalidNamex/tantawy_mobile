@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../data/models/agent_model.dart';
 import '../data/models/customer_model.dart';
 import '../data/models/item_model.dart';
+import '../data/models/items_groups_model.dart';
 import '../data/models/price_list_detail_model.dart';
 import '../data/models/invoice_model.dart';
 import '../data/models/voucher_model.dart';
@@ -16,6 +17,7 @@ class StorageService extends GetxService {
   late Box<AgentModel> _agentBox;
   late Box<CustomerModel> _customerBox;
   late Box<ItemModel> _itemBox;
+  late Box<ItemsGroupsModel> _itemsGroupsBox;
   late Box<PriceListDetailModel> _priceListBox;
   late Box<InvoiceResponseModel> _invoicesBox;
   late Box<VoucherResponseModel> _vouchersBox;
@@ -35,6 +37,7 @@ class StorageService extends GetxService {
     Hive.registerAdapter(CustomerModelAdapter());
     Hive.registerAdapter(PriceListInfoAdapter());
     Hive.registerAdapter(ItemModelAdapter());
+    Hive.registerAdapter(ItemsGroupsModelAdapter());
     Hive.registerAdapter(PriceListDetailModelAdapter());
     Hive.registerAdapter(ItemInfoAdapter());
     Hive.registerAdapter(PriceListInfoDetailAdapter());
@@ -50,6 +53,7 @@ class StorageService extends GetxService {
     _agentBox = await Hive.openBox<AgentModel>('agent');
     _customerBox = await Hive.openBox<CustomerModel>('customers');
     _itemBox = await Hive.openBox<ItemModel>('items');
+    _itemsGroupsBox = await Hive.openBox<ItemsGroupsModel>('items_groups');
     _priceListBox = await Hive.openBox<PriceListDetailModel>('price_lists');
     _invoicesBox = await Hive.openBox<InvoiceResponseModel>('invoices');
     _vouchersBox = await Hive.openBox<VoucherResponseModel>('vouchers');
@@ -114,6 +118,22 @@ class StorageService extends GetxService {
     final items = _itemBox.values.toList();
     logger.d('📦 STORAGE: Retrieved ${items.length} items from storage');
     return items;
+  }
+
+  // Items Groups
+  Future<void> saveItemsGroups(List<ItemsGroupsModel> groups) async {
+    await _itemsGroupsBox.clear();
+    logger.d('💾 STORAGE: Saving ${groups.length} item groups to storage...');
+    for (var group in groups) {
+      await _itemsGroupsBox.put(group.id, group);
+    }
+    logger.d('✅ STORAGE: ${groups.length} item groups saved successfully');
+  }
+
+  List<ItemsGroupsModel> getItemsGroups() {
+    final groups = _itemsGroupsBox.values.toList();
+    logger.d('📦 STORAGE: Retrieved ${groups.length} item groups from storage');
+    return groups;
   }
 
   // Price Lists

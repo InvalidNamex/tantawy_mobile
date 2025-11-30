@@ -6,6 +6,7 @@ import '../../../utils/constants.dart';
 import '../../../widgets/app_background.dart';
 import '../../../widgets/loading_button.dart';
 import '../../../data/models/item_model.dart';
+import '../../../data/models/items_groups_model.dart';
 
 class InvoiceView extends GetView<InvoiceController> {
   const InvoiceView({super.key});
@@ -186,9 +187,65 @@ class InvoiceView extends GetView<InvoiceController> {
                 'select_items'.tr,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
+              SizedBox(height: 16),
+              // Items Groups Dropdown
+              Obx(
+                () => controller.itemsGroups.isEmpty
+                    ? SizedBox.shrink()
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          DropdownSearch<ItemsGroupsModel>(
+                            items: (filter, infiniteScrollProps) =>
+                                controller.itemsGroups,
+                            selectedItem: controller.selectedGroup.value,
+                            itemAsString: (ItemsGroupsModel group) =>
+                                group.groupName,
+                            compareFn: (item1, item2) => item1.id == item2.id,
+                            decoratorProps: DropDownDecoratorProps(
+                              decoration: InputDecoration(
+                                labelText: 'filter_by_group'.tr,
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.category),
+                                suffixIcon:
+                                    controller.selectedGroup.value != null
+                                    ? IconButton(
+                                        icon: Icon(Icons.clear),
+                                        onPressed: () {
+                                          controller.selectedGroup.value = null;
+                                        },
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            popupProps: PopupProps.menu(
+                              showSearchBox: true,
+                              searchFieldProps: TextFieldProps(
+                                decoration: InputDecoration(
+                                  hintText: 'type_to_search'.tr,
+                                  prefixIcon: Icon(Icons.search),
+                                ),
+                              ),
+                              itemBuilder:
+                                  (context, item, isDisabled, isSelected) {
+                                    return ListTile(
+                                      title: Text(item.groupName),
+                                      selected: isSelected,
+                                    );
+                                  },
+                            ),
+                            onChanged: (ItemsGroupsModel? group) {
+                              controller.selectedGroup.value = group;
+                            },
+                          ),
+                          SizedBox(height: 16),
+                        ],
+                      ),
+              ),
+              // Items Dropdown
               DropdownSearch<ItemModel>(
                 items: (filter, infiniteScrollProps) =>
-                    controller.availableItems,
+                    controller.filteredItems,
                 itemAsString: (ItemModel item) =>
                     '${item.itemName} - ${item.barcode}',
                 compareFn: (item1, item2) => item1.id == item2.id,
@@ -226,7 +283,10 @@ class InvoiceView extends GetView<InvoiceController> {
       ),
       barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.5),
-    );
+    ).then((_) {
+      // Reset selected group when dialog is dismissed
+      controller.selectedGroup.value = null;
+    });
   }
 
   Widget _buildItemsTable() {

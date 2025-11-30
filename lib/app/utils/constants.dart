@@ -1,6 +1,5 @@
 class AppConstants {
-  static const String baseURL = 'https://tantawy.ezymanage.app';
-  static const int customerAccountId = 36;
+  static const String baseURL = 'https://tantawygroups.com';
   static const int storeCashAccountId = 35;
 
   // Invoice Types

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/customer_model.dart';
 import '../../../data/models/item_model.dart';
+import '../../../data/models/items_groups_model.dart';
 import '../../../data/models/invoice_model.dart';
 import '../../../data/models/invoice_detail_model.dart';
 import '../../../services/storage_service.dart';
@@ -43,6 +44,9 @@ class InvoiceController extends GetxController {
 
   final RxList<InvoiceItemRow> selectedItems = <InvoiceItemRow>[].obs;
   final RxList<ItemModel> availableItems = <ItemModel>[].obs;
+  final RxList<ItemsGroupsModel> itemsGroups = <ItemsGroupsModel>[].obs;
+  final Rxn<ItemsGroupsModel> selectedGroup = Rxn<ItemsGroupsModel>();
+  final RxList<ItemModel> filteredItems = <ItemModel>[].obs;
   final RxInt paymentType = AppConstants.paymentTypeCash.obs;
   final RxInt status = AppConstants.statusPaid.obs;
   final totalPaidController = TextEditingController();
@@ -56,10 +60,18 @@ class InvoiceController extends GetxController {
     customer = Get.arguments['customer'];
     invoiceType = Get.arguments['invoiceType'];
     availableItems.value = _storage.getItems();
+    itemsGroups.value = _storage.getItemsGroups();
+    filteredItems.value = availableItems; // Initially show all items
     logger.d('📦 INVOICE: Loaded ${availableItems.length} items from storage');
+    logger.d(
+      '📦 INVOICE: Loaded ${itemsGroups.length} item groups from storage',
+    );
     if (availableItems.isEmpty) {
       logger.w('⚠️ INVOICE: No items available! Items list is empty.');
     }
+
+    // Listen to group selection changes
+    ever(selectedGroup, (_) => _filterItemsByGroup());
 
     // Listen to status changes
     ever(status, (_) => _handleStatusChange());
@@ -90,6 +102,24 @@ class InvoiceController extends GetxController {
   void _updateNetTotal() {
     // Trigger rebuild by adding and removing a dummy item or using update
     selectedItems.value = List.from(selectedItems);
+  }
+
+  void _filterItemsByGroup() {
+    if (selectedGroup.value == null) {
+      // No group selected, show all items
+      filteredItems.value = availableItems;
+      logger.d(
+        '🔍 INVOICE: No group selected, showing all ${availableItems.length} items',
+      );
+    } else {
+      // Filter items by selected group
+      filteredItems.value = availableItems
+          .where((item) => item.itemGroupId == selectedGroup.value!.id)
+          .toList();
+      logger.d(
+        '🔍 INVOICE: Filtered to ${filteredItems.length} items in group "${selectedGroup.value!.groupName}"',
+      );
+    }
   }
 
   void _handleStatusChange() {
