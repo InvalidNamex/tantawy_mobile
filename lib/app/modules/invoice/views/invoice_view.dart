@@ -7,6 +7,7 @@ import '../../../widgets/app_background.dart';
 import '../../../widgets/loading_button.dart';
 import '../../../data/models/item_model.dart';
 import '../../../data/models/items_groups_model.dart';
+import 'widgets/quantity_dialog.dart';
 
 class InvoiceView extends GetView<InvoiceController> {
   const InvoiceView({super.key});
@@ -274,51 +275,7 @@ class InvoiceView extends GetView<InvoiceController> {
                 onChanged: (ItemModel? item) {
                   if (item != null) {
                     Get.dialog(
-                      Dialog(
-                        child: ListView(
-                          shrinkWrap: true,
-                          children: [
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(item.itemName),
-                              ),
-                            ),
-                            ListTile(
-                              leading: Text(
-                                item.mainUnitName ?? 'main_unit'.tr,
-                              ),
-                              title: TextField(),
-                            ),
-                            item.subUnitName != null
-                                ? ListTile(
-                                    leading: Text(item.subUnitName ?? ''),
-                                    title: TextField(),
-                                    trailing: Text(
-                                      item.mainUnitPack.toString(),
-                                    ),
-                                  )
-                                : SizedBox(),
-                            item.smallUnitName != null
-                                ? ListTile(
-                                    leading: Text(item.smallUnitName ?? ''),
-                                    title: TextField(),
-                                    trailing: Text(item.subUnitPack.toString()),
-                                  )
-                                : SizedBox(),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  controller.addItem(item);
-                                },
-                                child: Text('add'.tr),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      QuantityDialog(item: item, controller: controller),
                     );
                   }
                 },

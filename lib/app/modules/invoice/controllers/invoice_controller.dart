@@ -19,12 +19,14 @@ import '../../../utils/auth_session_manager.dart';
 class InvoiceItemRow {
   final ItemModel item;
   final RxDouble quantity;
+  final String quantityDetail; // Store the breakdown (e.g., "1 Box, 5 Pieces")
   final RxDouble price;
   final double priceListPrice; // Store the original price list price
 
   InvoiceItemRow({
     required this.item,
     double quantity = 1.0,
+    this.quantityDetail = '',
     required double price,
     required this.priceListPrice,
   }) : quantity = quantity.obs,
@@ -144,33 +146,57 @@ class InvoiceController extends GetxController {
         paymentType.value != AppConstants.paymentTypeDeferred;
   }
 
-  void addItem(ItemModel item) {
+  double getItemPrice(ItemModel item) {
+    double defaultPrice = 0.0;
+    logger.d('🔍 Getting price for item: ${item.itemName} (ID: ${item.id})');
+
+    // Only get price list details if customer has a price list
+    if (customer.priceList != null) {
+      logger.d('📋 Customer has price list: ${customer.priceList!.id}');
+      final priceListDetails = _storage.getPriceListDetails(
+        customer.priceList!.id,
+      );
+      logger.d('📋 Found ${priceListDetails.length} items in price list');
+
+      final priceDetail = priceListDetails.firstWhereOrNull(
+        (p) => p.item.id == item.id,
+      );
+
+      if (priceDetail != null) {
+        defaultPrice = priceDetail.price;
+        logger.d('✅ Found price in price list: $defaultPrice');
+      } else {
+        logger.w('⚠️ Item not found in price list');
+      }
+    } else {
+      logger.w('⚠️ Customer has no price list');
+    }
+
+    return defaultPrice;
+  }
+
+  void addItem(
+    ItemModel item, {
+    double quantity = 1.0,
+    String quantityDetail = '',
+  }) {
     // Check if item already exists
     final existingItemIndex = selectedItems.indexWhere(
       (i) => i.item.id == item.id,
     );
     if (existingItemIndex != -1) {
-      // Item already exists, increase quantity by 1
-      selectedItems[existingItemIndex].quantity.value += 1;
+      // Item already exists, increase quantity
+      selectedItems[existingItemIndex].quantity.value += quantity;
       return;
     }
 
-    double defaultPrice = 0.0;
-
-    // Only get price list details if customer has a price list
-    if (customer.priceList != null) {
-      final priceListDetails = _storage.getPriceListDetails(
-        customer.priceList!.id,
-      );
-      final priceDetail = priceListDetails.firstWhereOrNull(
-        (p) => p.item.id == item.id,
-      );
-      defaultPrice = priceDetail?.price ?? 0.0;
-    }
+    double defaultPrice = getItemPrice(item);
 
     selectedItems.add(
       InvoiceItemRow(
         item: item,
+        quantity: quantity,
+        quantityDetail: quantityDetail,
         price: defaultPrice,
         priceListPrice: defaultPrice,
       ),
