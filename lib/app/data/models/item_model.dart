@@ -19,12 +19,32 @@ class ItemModel {
   @HiveField(4)
   final String sign;
 
+  @HiveField(5)
+  final String? mainUnitName;
+
+  @HiveField(6)
+  final String? subUnitName;
+
+  @HiveField(7)
+  final String? smallUnitName;
+
+  @HiveField(8)
+  final double? mainUnitPack;
+
+  @HiveField(9)
+  final double? subUnitPack;
+
   ItemModel({
     required this.id,
     required this.itemName,
     this.itemGroupId,
     required this.barcode,
     required this.sign,
+    this.mainUnitName,
+    this.subUnitName,
+    this.smallUnitName,
+    this.mainUnitPack,
+    this.subUnitPack,
   });
 
   factory ItemModel.fromJson(Map<String, dynamic> json) => ItemModel(
@@ -33,6 +53,11 @@ class ItemModel {
     itemGroupId: json['itemGroupId'],
     barcode: json['barcode'] ?? '',
     sign: json['sign'] ?? '',
+    mainUnitName: json['mainUnitName'],
+    subUnitName: json['subUnitName'],
+    smallUnitName: json['smallUnitName'],
+    mainUnitPack: json['mainUnitPack']?.toDouble(),
+    subUnitPack: json['subUnitPack']?.toDouble(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -41,5 +66,10 @@ class ItemModel {
     'itemGroupId': itemGroupId,
     'barcode': barcode,
     'sign': sign,
+    'mainUnitName': mainUnitName,
+    'subUnitName': subUnitName,
+    'smallUnitName': smallUnitName,
+    'mainUnitPack': mainUnitPack,
+    'subUnitPack': subUnitPack,
   };
 }

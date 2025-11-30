@@ -22,13 +22,18 @@ class ItemModelAdapter extends TypeAdapter<ItemModel> {
       itemGroupId: fields[2] as int?,
       barcode: fields[3] as String,
       sign: fields[4] as String,
+      mainUnitName: fields[5] as String?,
+      subUnitName: fields[6] as String?,
+      smallUnitName: fields[7] as String?,
+      mainUnitPack: fields[8] as double?,
+      subUnitPack: fields[9] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ItemModel obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -38,7 +43,17 @@ class ItemModelAdapter extends TypeAdapter<ItemModel> {
       ..writeByte(3)
       ..write(obj.barcode)
       ..writeByte(4)
-      ..write(obj.sign);
+      ..write(obj.sign)
+      ..writeByte(5)
+      ..write(obj.mainUnitName)
+      ..writeByte(6)
+      ..write(obj.subUnitName)
+      ..writeByte(7)
+      ..write(obj.smallUnitName)
+      ..writeByte(8)
+      ..write(obj.mainUnitPack)
+      ..writeByte(9)
+      ..write(obj.subUnitPack);
   }
 
   @override
