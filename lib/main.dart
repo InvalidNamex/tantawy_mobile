@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 import 'app/theme/app_theme.dart';
@@ -14,6 +15,9 @@ import 'app/utils/logger.dart';
 void main() async {
   await SentryService.initialize(() async {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Preserve native splash until app is ready
+    FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
 
     try {
       await DependencyInjection.init();
@@ -57,6 +61,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settingsController = Get.find<SettingsController>();
+
+    // Remove native splash after first frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FlutterNativeSplash.remove();
+    });
 
     return Obx(
       () => GetMaterialApp(

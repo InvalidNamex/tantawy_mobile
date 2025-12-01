@@ -98,6 +98,7 @@ class InvoicesView extends GetView<InvoicesController> {
                               : ListView.builder(
                                   itemCount: controller.filteredInvoices.length,
                                   reverse: true,
+                                  padding: EdgeInsets.only(bottom: 80),
                                   itemBuilder: (context, index) {
                                     final invoice =
                                         controller.filteredInvoices[index];
