@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import '../../../routes/app_routes.dart';
 import '../../../services/storage_service.dart';
 import '../../../widgets/app_background.dart';
@@ -15,6 +16,10 @@ class _SplashViewState extends State<SplashView> {
   @override
   void initState() {
     super.initState();
+    // Remove native splash after the first frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FlutterNativeSplash.remove();
+    });
     _navigate();
   }
 

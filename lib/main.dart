@@ -58,14 +58,11 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     final settingsController = Get.find<SettingsController>();
-
-    // Remove native splash after first frame is rendered
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FlutterNativeSplash.remove();
-    });
 
     return Obx(
       () => GetMaterialApp(

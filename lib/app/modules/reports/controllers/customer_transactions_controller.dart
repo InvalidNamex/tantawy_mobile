@@ -1,3 +1,4 @@
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import '../../../data/models/customer_transaction_model.dart';
 import '../../../services/storage_service.dart';
@@ -39,7 +40,7 @@ class CustomerTransactionsController extends GetxController {
         error: e,
         stackTrace: stackTrace,
       );
-      Get.snackbar('error'.tr, '$e');
+      _showSnackbar('error'.tr, '$e');
     } finally {
       isLoading.value = false;
     }
@@ -48,7 +49,7 @@ class CustomerTransactionsController extends GetxController {
   Future<void> refreshTransactions() async {
     final isConnected = await _connectivity.checkConnection();
     if (!isConnected) {
-      Get.snackbar('offline_mode'.tr, 'cannot_refresh_offline'.tr);
+      _showSnackbar('offline_mode'.tr, 'cannot_refresh_offline'.tr);
       return;
     }
 
@@ -68,11 +69,19 @@ class CustomerTransactionsController extends GetxController {
         // Reload from storage to update UI
         await loadTransactions();
 
-        Get.snackbar('success'.tr, 'customer_transactions_updated'.tr);
+        _showSnackbar('success'.tr, 'customer_transactions_updated'.tr);
       }
     } catch (e) {
       logger.e('❌ Error refreshing customer transactions', error: e);
-      Get.snackbar('error'.tr, 'failed_to_refresh_customer_transactions'.tr);
+      _showSnackbar('error'.tr, 'failed_to_refresh_customer_transactions'.tr);
     }
+  }
+
+  void _showSnackbar(String title, String message) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (Get.overlayContext != null) {
+        Get.snackbar(title, message);
+      }
+    });
   }
 }

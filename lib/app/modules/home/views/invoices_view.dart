@@ -97,11 +97,12 @@ class InvoicesView extends GetView<InvoicesController> {
                                 )
                               : ListView.builder(
                                   itemCount: controller.filteredInvoices.length,
-                                  reverse: true,
                                   padding: EdgeInsets.only(bottom: 80),
                                   itemBuilder: (context, index) {
-                                    final invoice =
-                                        controller.filteredInvoices[index];
+                                    final invoice = controller
+                                        .filteredInvoices
+                                        .reversed
+                                        .toList()[index];
                                     return InvoiceCardWidget(
                                       invoice: invoice,
                                       getStatusText: controller.getStatusText,

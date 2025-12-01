@@ -6,6 +6,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../data/models/invoice_model.dart';
 import '../data/models/invoice_detail_model.dart';
+import '../data/models/item_model.dart';
+import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import '../utils/logger.dart';
 
@@ -17,6 +19,49 @@ class PrintInvoiceService {
   /// Check if the text contains Arabic characters
   static bool _isArabicText(String text) {
     return RegExp(r'[\u0600-\u06FF]').hasMatch(text);
+  }
+
+  /// Format quantity with multiple units (main, sub, small)
+  static String _formatQuantity(double rawQty, ItemModel? itemDetails) {
+    if (itemDetails == null) {
+      return rawQty.toStringAsFixed(2);
+    }
+
+    double mainUnitPack = itemDetails.mainUnitPack ?? 1.0;
+    double subUnitPack = itemDetails.subUnitPack ?? 1.0;
+
+    String mainUnitName = itemDetails.mainUnitName ?? 'Unit';
+    String subUnitName = itemDetails.subUnitName ?? 'Sub';
+    String smallUnitName = itemDetails.smallUnitName ?? 'Small';
+
+    int mainUnits = rawQty.floor();
+    double remainingAfterMain = rawQty - mainUnits;
+
+    // Calculate sub units without rounding first to preserve precision
+    double subUnitsDecimal = remainingAfterMain * mainUnitPack;
+    int subUnits = subUnitsDecimal.floor();
+
+    // Calculate remaining after sub units
+    double remainingAfterSub = subUnitsDecimal - subUnits;
+    int smallUnits = (remainingAfterSub * subUnitPack).round();
+
+    StringBuffer formattedQty = StringBuffer();
+    if (mainUnits > 0) {
+      formattedQty.write('$mainUnits $mainUnitName');
+    }
+    if (subUnits > 0) {
+      if (formattedQty.isNotEmpty) formattedQty.write('\n');
+      formattedQty.write('$subUnits $subUnitName');
+    }
+    if (smallUnits > 0) {
+      if (formattedQty.isNotEmpty) formattedQty.write('\n');
+      formattedQty.write('$smallUnits $smallUnitName');
+    }
+
+    if (formattedQty.isEmpty) {
+      return rawQty.toStringAsFixed(2);
+    }
+    return formattedQty.toString();
   }
 
   /// Print an invoice
@@ -327,6 +372,16 @@ class PrintInvoiceService {
       );
     }
 
+    // Get items from storage for unit information
+    List<ItemModel> items = [];
+    try {
+      final storageService = Get.find<StorageService>();
+      items = storageService.getItems();
+      logger.d('📦 Retrieved ${items.length} items from storage');
+    } catch (e) {
+      logger.w('⚠️ Could not retrieve items from storage: $e');
+    }
+
     List<pw.Widget> headers = [
       _buildText('item'.tr, font: arabicFont, bold: true, forceRTL: isArabic),
       _buildText(
@@ -343,6 +398,14 @@ class PrintInvoiceService {
     }
 
     final List<List<pw.Widget>> data = invoiceDetails.map((item) {
+      // Find matching ItemModel for unit information
+      ItemModel? itemModel = items.firstWhereOrNull(
+        (x) => x.itemName == item.itemName,
+      );
+
+      // Format quantity with units
+      String formattedQty = _formatQuantity(item.quantity, itemModel);
+
       List<pw.Widget> row = [
         _buildText(
           item.itemName,
@@ -350,9 +413,11 @@ class PrintInvoiceService {
           fontSize: bodyFontSize,
           forceRTL: isArabic,
         ),
-        pw.Text(
-          item.quantity.toStringAsFixed(2),
-          style: pw.TextStyle(font: arabicFont, fontSize: bodyFontSize),
+        _buildText(
+          formattedQty,
+          font: arabicFont,
+          fontSize: bodyFontSize,
+          forceRTL: isArabic,
         ),
         pw.Text(
           item.total.toStringAsFixed(2),

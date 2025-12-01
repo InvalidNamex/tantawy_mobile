@@ -237,6 +237,33 @@ class AppTranslations extends Translations {
       'update_applied_on_restart': 'سيتم تطبيق التحديث عند إعادة تشغيل التطبيق',
       'update_download_failed':
           'فشل تنزيل التحديث. يرجى المحاولة مرة أخرى لاحقاً.',
+
+      // Login error messages
+      'login_failed': 'فشل تسجيل الدخول',
+      'invalid_credentials': 'اسم المستخدم أو كلمة المرور غير صحيحة',
+      'invalid_username_or_password':
+          'اسم المستخدم أو كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى.',
+      'account_inactive': 'الحساب غير نشط',
+      'account_inactive_message': 'حسابك غير نشط. يرجى الاتصال بالمسؤول.',
+      'account_deleted': 'الحساب محذوف',
+      'account_deleted_message': 'هذا الحساب تم حذفه. يرجى الاتصال بالمسؤول.',
+      'login_server_error': 'خطأ في الخادم',
+      'login_server_error_message':
+          'حدث خطأ في الخادم أثناء تسجيل الدخول. يرجى المحاولة لاحقاً.',
+      'login_network_error': 'خطأ في الاتصال',
+      'login_network_error_message':
+          'لا يوجد اتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مرة أخرى.',
+      'login_timeout': 'انتهت المهلة',
+      'login_timeout_message': 'انتهت مهلة الاتصال. يرجى المحاولة مرة أخرى.',
+      'login_unknown_error': 'خطأ غير متوقع',
+      'login_unknown_error_message':
+          'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.',
+      'connection_timeout': 'انتهت مهلة الاتصال',
+      'connection_timeout_message':
+          'استغرق الاتصال وقتاً طويلاً. يرجى التحقق من اتصالك بالإنترنت.',
+      'server_not_responding': 'الخادم لا يستجيب',
+      'server_not_responding_message':
+          'الخادم لا يستجيب حالياً. يرجى المحاولة لاحقاً.',
     },
     'en': {
       'app_name': 'Tantawy',
@@ -473,6 +500,35 @@ class AppTranslations extends Translations {
       'update_applied_on_restart': 'Update will be applied on app restart',
       'update_download_failed':
           'Failed to download update. Please try again later.',
+
+      // Login error messages
+      'login_failed': 'Login Failed',
+      'invalid_credentials': 'Invalid username or password',
+      'invalid_username_or_password':
+          'Invalid username or password. Please try again.',
+      'account_inactive': 'Account Inactive',
+      'account_inactive_message':
+          'Your account is inactive. Please contact the administrator.',
+      'account_deleted': 'Account Deleted',
+      'account_deleted_message':
+          'This account has been deleted. Please contact the administrator.',
+      'login_server_error': 'Server Error',
+      'login_server_error_message':
+          'A server error occurred during login. Please try again later.',
+      'login_network_error': 'Network Error',
+      'login_network_error_message':
+          'No internet connection. Please check your connection and try again.',
+      'login_timeout': 'Timeout',
+      'login_timeout_message': 'Connection timeout. Please try again.',
+      'login_unknown_error': 'Unexpected Error',
+      'login_unknown_error_message':
+          'An unexpected error occurred. Please try again.',
+      'connection_timeout': 'Connection Timeout',
+      'connection_timeout_message':
+          'Connection took too long. Please check your internet connection.',
+      'server_not_responding': 'Server Not Responding',
+      'server_not_responding_message':
+          'The server is not responding. Please try again later.',
     },
   };
 }

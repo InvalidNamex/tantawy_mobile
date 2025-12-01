@@ -199,4 +199,115 @@ class ApiErrorHandler {
     }
     return 'server_error_generic'.tr;
   }
+
+  /// Handle login-specific errors with detailed messages
+  static String handleLoginError(dynamic error) {
+    if (error is DioException) {
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          logger.w('⏱️ Login timeout: ${error.message}');
+          return 'login_timeout_message'.tr;
+
+        case DioExceptionType.connectionError:
+          logger.w('📡 Login connection error: ${error.message}');
+          return 'login_network_error_message'.tr;
+
+        case DioExceptionType.badResponse:
+          return _handleLoginResponseError(error);
+
+        case DioExceptionType.cancel:
+          logger.w('❌ Login request cancelled');
+          return 'Request was cancelled.';
+
+        default:
+          logger.e('❌ Unexpected login error: ${error.message}');
+          return 'login_unknown_error_message'.tr;
+      }
+    }
+
+    logger.e('❌ Unknown login error: $error');
+    return 'login_unknown_error_message'.tr;
+  }
+
+  /// Handle login-specific HTTP response errors
+  static String _handleLoginResponseError(DioException error) {
+    final statusCode = error.response?.statusCode;
+    final data = error.response?.data;
+
+    logger.e('🔐 Login response error ($statusCode): $data');
+
+    switch (statusCode) {
+      case 400:
+        // Invalid credentials or validation error
+        final message = _extractErrorMessage(
+          data,
+          'invalid_username_or_password'.tr,
+        );
+        logger.w('⚠️ Login bad request (400): $message');
+        return message;
+
+      case 401:
+        // Unauthorized - invalid username/password
+        logger.w('🔐 Unauthorized login (401): Invalid credentials');
+        return 'invalid_username_or_password'.tr;
+
+      case 403:
+        // Forbidden - account inactive or deleted
+        final message = _extractErrorMessage(data, 'Access denied');
+        // Check if message mentions inactive or deleted account
+        final lowerMessage = message.toLowerCase();
+        if (lowerMessage.contains('inactive')) {
+          logger.w('🚫 Account inactive (403)');
+          return 'account_inactive_message'.tr;
+        } else if (lowerMessage.contains('deleted')) {
+          logger.w('🚫 Account deleted (403)');
+          return 'account_deleted_message'.tr;
+        }
+        logger.w('🚫 Forbidden (403): Access denied');
+        return 'account_inactive_message'.tr;
+
+      case 404:
+        logger.w('🔍 Not found (404): User not found');
+        return 'invalid_username_or_password'.tr;
+
+      case 429:
+        return _handle429RateLimit(data);
+
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        logger.e('🔥 Server error during login ($statusCode): $data');
+        return 'login_server_error_message'.tr;
+
+      default:
+        logger.e('❌ Unexpected HTTP error during login ($statusCode): $data');
+        return 'login_unknown_error_message'.tr;
+    }
+  }
+
+  /// Show login-specific error dialog or snackbar
+  static void showLoginError(dynamic error) {
+    final message = handleLoginError(error);
+
+    // Determine title based on error type
+    String title = 'login_failed'.tr;
+    if (error is DioException) {
+      final statusCode = error.response?.statusCode;
+      if (statusCode == 401 || statusCode == 400 || statusCode == 404) {
+        title = 'invalid_credentials'.tr;
+      } else if (statusCode == 403) {
+        title = 'account_inactive'.tr;
+      } else if (error.type == DioExceptionType.connectionError ||
+          error.type == DioExceptionType.connectionTimeout) {
+        title = 'login_network_error'.tr;
+      } else if (statusCode != null && statusCode >= 500) {
+        title = 'login_server_error'.tr;
+      }
+    }
+
+    Get.snackbar(title, message, duration: const Duration(seconds: 5));
+  }
 }

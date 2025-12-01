@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/data_repository.dart';
 import '../../../services/storage_service.dart';
@@ -179,7 +180,21 @@ class AuthController extends GetxController with SentryErrorHandler {
       Get.offAllNamed(AppRoutes.home);
     } catch (e, stackTrace) {
       logger.e('Login failed', error: e, stackTrace: stackTrace);
-      ApiErrorHandler.showErrorSnackbar(e);
+
+      // Use specialized login error handling
+      ApiErrorHandler.showLoginError(e);
+
+      // Report to Sentry for monitoring
+      await SentryService.captureException(
+        e,
+        stackTrace: stackTrace,
+        level: SentryLevel.error,
+        extras: {
+          'operation': 'login',
+          'username': username,
+          'error_type': e.runtimeType.toString(),
+        },
+      );
     } finally {
       isLoading.value = false;
     }
