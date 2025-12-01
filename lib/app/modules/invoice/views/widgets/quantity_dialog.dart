@@ -246,8 +246,8 @@ class _QuantityDialogState extends State<QuantityDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Total Price: ',
+                  Text(
+                    'total_price:'.tr,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Obx(
