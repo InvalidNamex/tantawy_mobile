@@ -6,6 +6,8 @@ import '../data/models/invoice_detail_model.dart';
 import '../theme/app_colors_extension.dart';
 import '../utils/constants.dart';
 import '../services/print_invoice_service.dart';
+import '../services/share_invoice_service.dart';
+import '../services/storage_service.dart';
 import '../utils/logger.dart';
 
 /// Reusable invoice card widget for displaying invoice information
@@ -84,6 +86,14 @@ class InvoiceCardWidget extends StatelessWidget {
               padding: EdgeInsets.all(8),
               constraints: BoxConstraints(),
             ),
+            SizedBox(width: 4),
+            IconButton(
+              icon: Icon(Icons.share, color: context.colors.primary),
+              onPressed: () => _shareInvoice(context),
+              tooltip: 'share'.tr,
+              padding: EdgeInsets.all(8),
+              constraints: BoxConstraints(),
+            ),
             SizedBox(width: 8),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -136,7 +146,7 @@ class InvoiceCardWidget extends StatelessWidget {
       await PrintInvoiceService.printInvoice(
         invoice: invoice,
         invoiceDetails: details,
-        agentName: null, // Can be passed from the parent if available
+        agentName: Get.find<StorageService>().getAgent()?.name,
       );
 
       logger.d('✅ Print completed successfully');
@@ -144,6 +154,57 @@ class InvoiceCardWidget extends StatelessWidget {
       Get.back();
     } catch (e, stackTrace) {
       logger.e('❌ Error printing invoice: $e');
+      logger.e('Stack trace: $stackTrace');
+
+      // Show detailed error message
+      Get.snackbar(
+        'error'.tr,
+        '${e.toString()}',
+        snackPosition: SnackPosition.bottom,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: Duration(seconds: 5),
+        isDismissible: true,
+      );
+    }
+  }
+
+  void _shareInvoice(BuildContext context) async {
+    try {
+      logger.d('📤 Share button clicked for invoice ${invoice.id}');
+
+      // Convert InvoiceDetailResponse to InvoiceDetailModel for sharing
+      List<InvoiceDetailModel> details = [];
+      if (invoice.invoiceDetails != null &&
+          invoice.invoiceDetails!.isNotEmpty) {
+        details = invoice.invoiceDetails!.map((detail) {
+          // Calculate total per item (quantity * price)
+          // Since price is not in the response, we'll use netTotal / total quantity as approximation
+          double itemTotal = invoice.netTotal / invoice.invoiceDetails!.length;
+
+          return InvoiceDetailModel(
+            itemName: detail.itemName,
+            quantity: detail.itemQuantity,
+            price: 0.0, // Price not provided in API
+            discount: 0.0,
+            vat: 0.0,
+            total: itemTotal,
+          );
+        }).toList();
+        logger.d('✅ Converted ${details.length} invoice details');
+      } else {
+        logger.d('⚠️ No invoice details available');
+      }
+
+      await ShareInvoiceService.shareInvoice(
+        invoice: invoice,
+        invoiceDetails: details,
+        agentName: Get.find<StorageService>().getAgent()?.name,
+      );
+
+      logger.d('✅ Share completed successfully');
+    } catch (e, stackTrace) {
+      logger.e('❌ Error sharing invoice: $e');
       logger.e('Stack trace: $stackTrace');
 
       // Show detailed error message

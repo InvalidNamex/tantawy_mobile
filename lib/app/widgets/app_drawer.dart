@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../modules/settings/controllers/settings_controller.dart';
 import '../modules/auth/controllers/auth_controller.dart';
 import '../modules/home/controllers/visit_plan_controller.dart';
+import '../services/shorebird_update_service.dart';
 import '../theme/app_colors_extension.dart';
 import '../routes/app_routes.dart';
 import '../utils/constants.dart';
@@ -131,6 +132,19 @@ class AppDrawer extends StatelessWidget {
                       onTap: settingsController.toggleLanguage,
                     ),
                   ),
+
+                  SizedBox(height: 8),
+
+                  // Check for Updates
+                  _buildDrawerItem(
+                    context: context,
+                    icon: Icons.system_update,
+                    title: 'check_for_updates'.tr,
+                    onTap: () {
+                      Get.back(); // Close drawer
+                      _checkForUpdates(context);
+                    },
+                  ),
                 ],
               ),
             ),
@@ -216,6 +230,33 @@ class AppDrawer extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 4),
     );
+  }
+
+  void _checkForUpdates(BuildContext context) {
+    try {
+      final shorebirdService = Get.find<ShorebirdUpdateService>();
+
+      // Show checking message
+      Get.snackbar(
+        'checking_for_updates'.tr,
+        'please_wait'.tr,
+        backgroundColor: context.colors.primary.withOpacity(0.8),
+        colorText: Colors.white,
+        duration: Duration(seconds: 2),
+        icon: Icon(Icons.sync, color: Colors.white),
+      );
+
+      // Check for updates
+      shorebirdService.checkForUpdates(showNotification: true);
+    } catch (e) {
+      Get.snackbar(
+        'error'.tr,
+        'failed_to_check_updates'.tr,
+        backgroundColor: context.colors.error.withOpacity(0.8),
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+      );
+    }
   }
 
   void _showLogoutDialog(BuildContext context, AuthController authController) {

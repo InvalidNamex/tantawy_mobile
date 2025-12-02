@@ -8,7 +8,6 @@ import 'app/theme/app_theme.dart';
 import 'app/utils/translations.dart';
 import 'app/services/dependency_injection.dart';
 import 'app/services/sentry_service.dart';
-import 'app/services/shorebird_update_service.dart';
 import 'app/modules/settings/controllers/settings_controller.dart';
 import 'app/utils/logger.dart';
 
@@ -29,13 +28,7 @@ void main() async {
         level: SentryLevel.info,
       );
 
-      // Check for Shorebird updates after initialization
-      try {
-        final shorebirdService = Get.find<ShorebirdUpdateService>();
-        shorebirdService.checkForUpdatesOnLaunch();
-      } catch (e) {
-        logger.w('Shorebird update check skipped', error: e);
-      }
+      // Note: Update check is now done in VisitPlanController after navigation
     } catch (e, stackTrace) {
       logger.e(
         'Failed to initialize dependencies',

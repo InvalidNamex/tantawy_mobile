@@ -30,7 +30,7 @@ class AppTranslations extends Translations {
       'voucher': 'سند',
       'negative_visit': 'زيارة سلبية',
       'customer': 'العميل',
-      'total_price': 'السعر الإجمالي',
+      'total_price': 'السعر الإجمالي: ',
       'items': 'الأصناف',
       'quantity': 'الكمية',
       'price': 'السعر',
@@ -177,10 +177,15 @@ class AppTranslations extends Translations {
           'لا يمكن أن يكون السعر أقل من سعر القائمة',
       'partially_paid_must_have_amount':
           'يجب أن يحتوي المدفوع جزئياً على مبلغ أكبر من الصفر',
+      'partially_paid_cannot_equal_or_exceed_total':
+          'لا يمكن أن يكون المبلغ المدفوع جزئياً مساوياً أو أكبر من الإجمالي',
+      'must_be_less_than_net_total': 'يجب أن يكون أقل من صافي الإجمالي',
       'discount_cannot_exceed_subtotal':
           'لا يمكن أن يكون الخصم أكبر من المجموع الفرعي',
       'print': 'طباعة',
       'print_error': 'حدث خطأ أثناء الطباعة',
+      'share': 'مشاركة',
+      'please_check_internet_connection': 'يرجى التحقق من اتصال الإنترنت',
       'do_you_want_to_print_invoice': 'هل تريد طباعة الفاتورة؟',
       'invoice': 'فاتورة',
       'return_invoice': 'فاتورة مرتجع',
@@ -224,6 +229,9 @@ class AppTranslations extends Translations {
       'cannot_refresh_offline': 'لا يمكن التحديث في وضع عدم الاتصال',
 
       // Shorebird update messages
+      'check_for_updates': 'البحث عن تحديثات',
+      'checking_for_updates': 'جاري البحث عن تحديثات',
+      'failed_to_check_updates': 'فشل البحث عن تحديثات',
       'update_available': 'تحديث متاح',
       'update_available_message': 'يتوفر تحديث جديد للتطبيق',
       'update_available_dialog_message':
@@ -438,9 +446,15 @@ class AppTranslations extends Translations {
           'Price cannot be lower than pricelist price',
       'partially_paid_must_have_amount':
           'Partially paid must have an amount greater than zero',
+      'partially_paid_cannot_equal_or_exceed_total':
+          'Partially paid amount cannot equal or exceed total',
+      'must_be_less_than_net_total': 'Must be less than net total',
       'discount_cannot_exceed_subtotal': 'Discount cannot exceed subtotal',
       'print': 'Print',
       'print_error': 'An error occurred while printing',
+      'share': 'Share',
+      'please_check_internet_connection':
+          'Please check your internet connection',
       'do_you_want_to_print_invoice': 'Do you want to print the invoice?',
       'invoice': 'Invoice',
       'return_invoice': 'Return Invoice',
@@ -487,6 +501,9 @@ class AppTranslations extends Translations {
       'cannot_refresh_offline': 'Cannot refresh while offline',
 
       // Shorebird update messages
+      'check_for_updates': 'Check for Updates',
+      'checking_for_updates': 'Checking for Updates',
+      'failed_to_check_updates': 'Failed to check for updates',
       'update_available': 'Update Available',
       'update_available_message': 'A new app update is available',
       'update_available_dialog_message':

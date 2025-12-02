@@ -44,7 +44,11 @@ class ShorebirdUpdateService extends GetxService {
       }
 
       isCheckingForUpdate.value = true;
-      logger.i('Checking for Shorebird updates...');
+
+      final currentPatch = await getCurrentPatchNumber();
+      logger.i(
+        'Checking for Shorebird updates... Current patch: $currentPatch',
+      );
 
       // Check if an update is available
       final status = await _shorebirdCodePush.checkForUpdate();
@@ -53,14 +57,13 @@ class ShorebirdUpdateService extends GetxService {
       isUpdateAvailable.value = updateAvailable;
 
       if (updateAvailable) {
-        final currentPatch = await getCurrentPatchNumber();
-        logger.i('Update available! Current patch: $currentPatch');
+        logger.i('Update available! Status: $status');
 
         if (showNotification) {
           _showUpdateNotification();
         }
       } else {
-        logger.i('No updates available. App is up to date.');
+        logger.i('No updates available. Status: $status');
       }
     } catch (e, stackTrace) {
       logger.e('Error checking for updates', error: e, stackTrace: stackTrace);
@@ -82,8 +85,8 @@ class ShorebirdUpdateService extends GetxService {
 
       // Show downloading dialog
       Get.dialog(
-        WillPopScope(
-          onWillPop: () async => false,
+        PopScope(
+          canPop: false,
           child: AlertDialog(
             title: Row(
               children: [
@@ -98,7 +101,7 @@ class ShorebirdUpdateService extends GetxService {
         barrierDismissible: false,
       );
 
-      // Download the update
+      // Download and install the update
       await _shorebirdCodePush.update();
 
       logger.i('Update downloaded successfully');
@@ -133,23 +136,33 @@ class ShorebirdUpdateService extends GetxService {
 
   /// Show notification when update is available
   void _showUpdateNotification() {
-    Get.snackbar(
-      'update_available'.tr,
-      'update_available_message'.tr,
-      backgroundColor: Colors.blue.withOpacity(0.8),
-      colorText: Colors.white,
-      duration: Duration(seconds: 5),
-      mainButton: TextButton(
-        onPressed: () {
-          Get.back(); // Close snackbar
-          _showUpdateDialog();
-        },
-        child: Text(
-          'update_now'.tr,
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
+    // Delay slightly to ensure overlay is ready
+    Future.delayed(Duration(milliseconds: 100), () {
+      try {
+        Get.snackbar(
+          'update_available'.tr,
+          'update_available_message'.tr,
+          backgroundColor: Colors.blue.withOpacity(0.8),
+          colorText: Colors.white,
+          duration: Duration(seconds: 5),
+          mainButton: TextButton(
+            onPressed: () {
+              Get.back(); // Close snackbar
+              _showUpdateDialog();
+            },
+            child: Text(
+              'update_now'.tr,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        );
+      } catch (e) {
+        logger.e('Error showing update notification', error: e);
+      }
+    });
   }
 
   /// Show dialog asking user to update
@@ -175,8 +188,8 @@ class ShorebirdUpdateService extends GetxService {
   /// Show prompt to restart app after update
   void _showRestartPrompt() {
     Get.dialog(
-      WillPopScope(
-        onWillPop: () async => false,
+      PopScope(
+        canPop: false,
         child: AlertDialog(
           title: Text('update_complete'.tr),
           content: Text('update_restart_message'.tr),
@@ -205,8 +218,9 @@ class ShorebirdUpdateService extends GetxService {
 
   /// Check for updates on app launch
   Future<void> checkForUpdatesOnLaunch() async {
-    // Wait a bit before checking to avoid blocking app startup
-    await Future.delayed(Duration(seconds: 2));
+    // Wait longer to ensure navigation is complete before showing update notification
+    // Splash screen navigates after 2 seconds, so we wait 4 seconds to be safe
+    await Future.delayed(Duration(seconds: 4));
     await checkForUpdates(showNotification: true);
   }
 }

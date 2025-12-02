@@ -143,7 +143,24 @@ class InvoiceView extends GetView<InvoiceController> {
                     decoration: InputDecoration(
                       labelText: 'total_paid'.tr,
                       border: OutlineInputBorder(),
+                      errorText:
+                          controller.status.value ==
+                                  AppConstants.statusPartiallyPaid &&
+                              double.tryParse(
+                                    controller.totalPaidController.text,
+                                  ) !=
+                                  null &&
+                              double.parse(
+                                    controller.totalPaidController.text,
+                                  ) >=
+                                  controller.netTotal
+                          ? 'must_be_less_than_net_total'.tr
+                          : null,
                     ),
+                    onChanged: (value) {
+                      // Trigger rebuild to show/hide error
+                      controller.totalPaidController.text = value;
+                    },
                   ),
                 ),
                 SizedBox(height: 16),
@@ -455,35 +472,55 @@ class InvoiceView extends GetView<InvoiceController> {
             child: Text('deferred'.tr),
           ),
         ],
-        onChanged: (value) => controller.paymentType.value = value!,
+        onChanged: (value) {
+          controller.paymentType.value = value!;
+          // If cash or visa selected and status is unpaid, change to paid
+          if ((value == AppConstants.paymentTypeCash ||
+                  value == AppConstants.paymentTypeVisa) &&
+              controller.status.value == AppConstants.statusUnpaid) {
+            controller.status.value = AppConstants.statusPaid;
+          }
+        },
       ),
     );
   }
 
   Widget _buildStatusDropdown() {
-    return Obx(
-      () => DropdownButtonFormField<int>(
-        value: controller.status.value,
-        decoration: InputDecoration(
-          labelText: 'status'.tr,
-          border: OutlineInputBorder(),
-        ),
-        items: [
+    return Obx(() {
+      // Build status items based on payment type
+      List<DropdownMenuItem<int>> statusItems = [];
+
+      if (controller.paymentType.value == AppConstants.paymentTypeDeferred) {
+        // Deferred payment can only be unpaid
+        statusItems.add(
+          DropdownMenuItem(
+            value: AppConstants.statusUnpaid,
+            child: Text('unpaid'.tr),
+          ),
+        );
+      } else {
+        // Cash or Visa: can be paid or partially paid, but NOT unpaid
+        statusItems.addAll([
           DropdownMenuItem(
             value: AppConstants.statusPaid,
             child: Text('paid'.tr),
           ),
           DropdownMenuItem(
-            value: AppConstants.statusUnpaid,
-            child: Text('unpaid'.tr),
-          ),
-          DropdownMenuItem(
             value: AppConstants.statusPartiallyPaid,
             child: Text('partially_paid'.tr),
           ),
-        ],
+        ]);
+      }
+
+      return DropdownButtonFormField<int>(
+        value: controller.status.value,
+        decoration: InputDecoration(
+          labelText: 'status'.tr,
+          border: OutlineInputBorder(),
+        ),
+        items: statusItems,
         onChanged: (value) => controller.status.value = value!,
-      ),
-    );
+      );
+    });
   }
 }

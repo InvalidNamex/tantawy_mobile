@@ -134,8 +134,16 @@ class InvoiceController extends GetxController {
 
   void _handlePaymentTypeChange() {
     if (paymentType.value == AppConstants.paymentTypeDeferred) {
+      // Deferred payment must be unpaid
       status.value = AppConstants.statusUnpaid;
       totalPaidController.text = '0';
+    } else if (paymentType.value == AppConstants.paymentTypeCash ||
+        paymentType.value == AppConstants.paymentTypeVisa) {
+      // Cash or Visa cannot be unpaid, default to paid
+      if (status.value == AppConstants.statusUnpaid) {
+        status.value = AppConstants.statusPaid;
+        totalPaidController.text = netTotal.toStringAsFixed(2);
+      }
     }
   }
 
@@ -237,6 +245,13 @@ class InvoiceController extends GetxController {
       final totalPaid = double.tryParse(totalPaidController.text) ?? 0.0;
       if (totalPaid <= 0) {
         Get.snackbar('error'.tr, 'partially_paid_must_have_amount'.tr);
+        return;
+      }
+      if (totalPaid >= netTotal) {
+        Get.snackbar(
+          'error'.tr,
+          'partially_paid_cannot_equal_or_exceed_total'.tr,
+        );
         return;
       }
     }

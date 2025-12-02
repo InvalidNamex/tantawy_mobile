@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../data/models/voucher_model.dart';
 import '../services/print_voucher_service.dart';
+import '../services/share_voucher_service.dart';
+import '../services/storage_service.dart';
 import '../utils/logger.dart';
 
 /// Reusable voucher card widget for displaying voucher information
@@ -52,6 +54,17 @@ class VoucherCardWidget extends StatelessWidget {
                         ),
                         onPressed: () => _printVoucher(context),
                         tooltip: 'print'.tr,
+                        padding: EdgeInsets.all(8),
+                        constraints: BoxConstraints(),
+                      ),
+                      SizedBox(width: 4),
+                      IconButton(
+                        icon: Icon(
+                          Icons.share,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        onPressed: () => _shareVoucher(context),
+                        tooltip: 'share'.tr,
                         padding: EdgeInsets.all(8),
                         constraints: BoxConstraints(),
                       ),
@@ -147,7 +160,7 @@ class VoucherCardWidget extends StatelessWidget {
 
       await PrintVoucherService.printVoucher(
         voucher: voucher,
-        agentName: null, // Can be passed from the parent if available
+        agentName: Get.find<StorageService>().getAgent()?.name,
       );
 
       logger.d('✅ Print completed successfully');
@@ -159,6 +172,33 @@ class VoucherCardWidget extends StatelessWidget {
       Get.snackbar(
         'error'.tr,
         'print_error'.tr,
+        snackPosition: SnackPosition.bottom,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: Duration(seconds: 5),
+        isDismissible: true,
+      );
+    }
+  }
+
+  void _shareVoucher(BuildContext context) async {
+    try {
+      logger.d('📤 Share button clicked for voucher ${voucher.id}');
+
+      await ShareVoucherService.shareVoucher(
+        voucher: voucher,
+        agentName: Get.find<StorageService>().getAgent()?.name,
+      );
+
+      logger.d('✅ Share completed successfully');
+    } catch (e, stackTrace) {
+      logger.e('❌ Error sharing voucher: $e');
+      logger.e('Stack trace: $stackTrace');
+
+      // Show detailed error message
+      Get.snackbar(
+        'error'.tr,
+        '${e.toString()}',
         snackPosition: SnackPosition.bottom,
         backgroundColor: Colors.red,
         colorText: Colors.white,

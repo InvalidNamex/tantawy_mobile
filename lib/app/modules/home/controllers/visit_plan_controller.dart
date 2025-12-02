@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../data/models/customer_model.dart';
 import '../../../services/storage_service.dart';
 import '../../../services/connectivity_service.dart';
+import '../../../services/shorebird_update_service.dart';
 import '../../../data/repositories/sync_repository.dart';
 import '../../../data/repositories/data_repository.dart';
 import '../../../utils/logger.dart';
@@ -37,6 +38,20 @@ class VisitPlanController extends GetxController {
     super.onInit();
     _loadCustomers();
     _checkAndFetchDataIfNeeded();
+    _checkForUpdates();
+  }
+
+  void _checkForUpdates() {
+    // Check for Shorebird updates after home screen is loaded
+    try {
+      final shorebirdService = Get.find<ShorebirdUpdateService>();
+      // Longer delay to ensure UI and overlay are fully ready
+      Future.delayed(Duration(seconds: 2), () {
+        shorebirdService.checkForUpdates(showNotification: true);
+      });
+    } catch (e) {
+      logger.w('Shorebird update check failed', error: e);
+    }
   }
 
   void _loadCustomers() {
