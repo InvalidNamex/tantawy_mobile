@@ -25,11 +25,17 @@ class VoucherView extends GetView<VoucherController> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(height: kToolbarHeight + 24),
-              if (controller.customerVendorName.isNotEmpty)
-                Text(
-                  '${'customer'.tr}: ${controller.customerVendorName}',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+              (controller.customerVendorName.isNotEmpty)
+                  ? Text(
+                      '${'customer'.tr}: ${controller.customerVendorName}',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  :
+                    //todo: dropdownsearch for customer/vendor selection
+                    SizedBox(),
               Spacer(),
               TextField(
                 controller: controller.amountController,
